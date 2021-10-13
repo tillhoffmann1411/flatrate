@@ -2,8 +2,10 @@ import { Container, FormControl, Grid, InputLabel, makeStyles, Select } from '@m
 import IApplicant from '../../interfaces/applicant';
 import { get, ref, update } from 'firebase/database';
 import { db } from '../../App';
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
 import { Typography } from '@mui/material';
+import { useAppDispatch, useAppSelector } from '../../redux/store';
+import { setApplicant, updateApplicant } from '../../redux/reducers/applicants';
 
 
 const useStyles = makeStyles((theme) => ({
@@ -33,15 +35,29 @@ const useStyles = makeStyles((theme) => ({
 
 export const Applicant = ({id}: {id: string}) => {
   const classes = useStyles();
+  const applicantsState = useAppSelector(state => state.applicantsReducer);
+  const dispatch = useAppDispatch();
+  const applicant = applicantsState.selectedApplicant;
+  const applicants = applicantsState.applicants;
 
-  let [applicant, setApplicant] = useState<IApplicant>();
+  window.scrollTo(0, 0);
+
   useEffect(() => {
     const fetch = async () => {
       const appl = await fetchApplicant(id);
-      setApplicant(appl);
+      dispatch(setApplicant(appl));
     };
-    fetch();
-  }, [id]);
+    const cache = () => {
+      const appl = applicants.find(a => a.id === id);
+      if (appl) dispatch(setApplicant(appl));
+    }
+    if (applicants.length === 0) {
+      fetch();
+    } else {
+      cache();
+    }
+  }, [id, applicants, dispatch]);
+  
   if (applicant) {
     return <Grid container spacing={2}>
         <Grid item xs={12} sm={6}>
@@ -69,10 +85,10 @@ export const Applicant = ({id}: {id: string}) => {
                   value={applicant!.ratings[name.toLowerCase() as keyof IApplicant['ratings']]}
                   onChange={(event) => {
                     handleChange(event, applicant!.id, applicant!.ratings);
-                    setApplicant({...applicant!, ratings: {
+
+                    dispatch(updateApplicant({...applicant!, ratings: {
                       ...applicant!.ratings,
-                      [name.toLowerCase() as keyof IApplicant['ratings']]: event.target.value}
-                    });
+                      [name.toLowerCase() as keyof IApplicant['ratings']]: parseInt(event.target.value as string)}}));
                   }}
                   label="Rating"
                   inputProps={{
@@ -103,16 +119,17 @@ export const Applicant = ({id}: {id: string}) => {
   }
 }
 
-const handleChange = (event: React.ChangeEvent<{ name?: string; value: unknown }>, id: string, ratings: IApplicant['ratings']) => {
+const handleChange = async (event: React.ChangeEvent<{ name?: string; value: unknown }>, id: string, ratings: IApplicant['ratings']) => {
   const dbRef = ref(db, 'applicants/' + id);
   const name = event.target.name!.toLowerCase();
-  const value = Number(event.target.value!);
-  update(dbRef, {
+  const value = parseInt(event.target.value! as string);
+  await update(dbRef, {
     ratings: {
       ...ratings,
       [name]: value
     }
   });
+
 };
 
 const fetchApplicant = async (id: string): Promise<IApplicant> => {

@@ -3,15 +3,27 @@ import { useHistory } from 'react-router-dom';
 import IApplicant from '../../interfaces/applicant';
 import { useState, useEffect } from 'react';
 import { Stack, Box, Container, TextField, ButtonGroup, Button } from '@mui/material';
+import { useAppDispatch, useAppSelector } from '../../redux/store';
+import { setFilter } from '../../redux/reducers/filter';
+import { setApplicant } from '../../redux/reducers/applicants';
 
-
-export function ApplicantsList({rawApplicants}: {rawApplicants: IApplicant[]}) {
-  let [applicants, setApplicants] = useState<IApplicant[]>([]);
+export function ApplicantsList() {
+  const dispatch = useAppDispatch();
+  const allApplicants = useAppSelector(state => state.applicantsReducer.applicants);
+  const filter = useAppSelector(state => state.filterReducer);
+  const [applicants, setLocalApplicants] = useState<IApplicant[]>([]);
+  window.scrollTo(0, filter.position);
+  
   useEffect(() => {
-    setApplicants(applySort(rawApplicants, 'newest'));
-  }, [rawApplicants]);
+    const filteredApplicants = filterSex(allApplicants, !filter.male, !filter.female);
+    const rankedApplicants = applySort(filteredApplicants, filter.ranking);
+    const searchedApplicants = applySearch(rankedApplicants, filter.searchString);
+    setLocalApplicants(searchedApplicants);
+    dispatch(setApplicant(undefined));
+  }, [allApplicants, filter, dispatch]);
+
   return <Container sx={{ p: 0 }}>
-    <FilterOptions applicants={rawApplicants} cb={(sortedAppl) => setApplicants(sortedAppl)}/>
+    <FilterOptions/>
     <Box sx={{ my: 3 }}><hr /></Box> 
     <DisplayList applicants={applicants}/>
   </Container>
@@ -19,10 +31,14 @@ export function ApplicantsList({rawApplicants}: {rawApplicants: IApplicant[]}) {
 
 const DisplayList = ({applicants}: {applicants: IApplicant[]}) => {
   const history = useHistory();
+  const dispatch = useAppDispatch();
 
   return <List>
     {applicants.map(appl => {
-      return <ListItem key={appl.id} onClick={() => history.push('/applicant/' + appl.id)}>
+      return <ListItem key={appl.id} onClick={() => {
+                dispatch(setFilter({position: window.scrollY}));
+                history.push('/applicant/' + appl.id);
+            }}>
           <ListItemAvatar>
             <Avatar alt={appl.name} src={appl.imageUrl} />
           </ListItemAvatar>
@@ -30,38 +46,43 @@ const DisplayList = ({applicants}: {applicants: IApplicant[]}) => {
             primary={appl.name}
             />
             {appl.gender ?
-              <Chip color={appl.gender === "Männlich" ? "primary" : "secondary"} label={appl.gender === "Männlich" ? "M" : "W"}/>
+              <Chip size="small" color={appl.gender === "Männlich" ? "primary" : "secondary"} label={appl.gender === "Männlich" ? "M" : "W"}/>
               : undefined
             }
-            <Chip label={calcRating(appl.ratings)}/>
+            <Chip size="small" className={'score-chip'} label={calcRating(appl.ratings)}/>
         </ListItem>;
     })}
   </List>
 }
 
-const FilterOptions = ({applicants, cb}: {applicants: IApplicant[], cb: (applicants: IApplicant[]) => void}) => {
-  let [male, setMale] = useState<boolean>(true);
-  let [female, setFemale] = useState<boolean>(true);
+const FilterOptions = () => {
+  const filter = useAppSelector(state => state.filterReducer);
+  const dispatch = useAppDispatch();
+
+  const [maleToggle, setMaleToggle] = useState<boolean>(true);
+  const [femaleToggle, setFemaleToggle] = useState<boolean>(true);
+
+  useEffect(() => {
+    setMaleToggle(!filter.male);
+    setFemaleToggle(!filter.female);
+  }, [filter, setMaleToggle, setFemaleToggle]);
 
   return <Stack>
 
-      <TextField id="search" label="Suche" variant="outlined" onChange={(e) => {
-        const filtered = applySearch(applicants, e.target.value);
-        setMale(true);
-        setFemale(true);
-        cb(filtered);
+      <TextField id="search" label="Suche" variant="outlined" value={filter.searchString.valueOf()} onChange={(e) => {
+        dispatch(setFilter({male: false, female: false, searchString: e.target.value}));
       }}/>
 
       <Box sx={{ my: 1 }} /> 
 
       <FormGroup>
-        <FormControlLabel control={<Checkbox checked={male} onClick={() => {
-          setMale(!male);
-          cb(filterSex(applicants, !male, female));
+        <FormControlLabel control={<Checkbox checked={maleToggle} onClick={() => {
+          setMaleToggle(!maleToggle)
+          dispatch(setFilter({male: maleToggle}));
         }} />} label="Männlich" />
-        <FormControlLabel control={<Checkbox checked={female} onClick={() => {
-          setFemale(!female);
-          cb(filterSex(applicants, male, !female));
+        <FormControlLabel control={<Checkbox checked={femaleToggle} onClick={() => {
+          setFemaleToggle(!femaleToggle);
+          dispatch(setFilter({female: femaleToggle}));
         }} />} label="Weiblich" />
       </FormGroup>
 
@@ -69,15 +90,11 @@ const FilterOptions = ({applicants, cb}: {applicants: IApplicant[], cb: (applica
 
       <ButtonGroup sx={{ mx: "auto" }} color="primary" aria-label="outlined primary button group">
         <Button onClick={() => {
-          const filtered = filterSex(applicants, male, female);
-          const newAppls = applySort(filtered, 'newest');
-          cb(newAppls);
+          dispatch(setFilter({ranking: 'newest'}));
         }}>Neuste zuerst</Button>
 
         <Button onClick={() => {
-          const filtered = filterSex(applicants, male, female);
-          const newAppls = applySort(filtered, 'score');
-          cb(newAppls);
+          dispatch(setFilter({ranking: 'score'}));
         }}>Höchster Score</Button>
       </ButtonGroup>
 

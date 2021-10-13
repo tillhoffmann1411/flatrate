@@ -4,11 +4,13 @@ import { ApplicantsList } from './components/applicants-list/applicants-list';
 import { initializeApp } from 'firebase/app';
 import IApplicant from './interfaces/applicant';
 import { get, getDatabase, ref } from 'firebase/database';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { Route, Switch, useHistory } from 'react-router-dom';
 import { Applicant } from './components/applicant/applicant';
 import React from 'react';
 import {firebaseEnv} from './env';
+import { setApplicants } from './redux/reducers/applicants';
+import { useAppDispatch } from './redux/store';
 
 const firebaseConfig = {
   apiKey: firebaseEnv.key,
@@ -46,8 +48,7 @@ function ElevationScroll(props: React.PropsWithChildren<any>) {
 function App() {
   const classes = useStyles();
   const history = useHistory();
-
-  let [applicants, setApplicants] = useState<IApplicant[]>([]);
+  const dispatch = useAppDispatch();
 
   useEffect(() => {
     const fetchApplicants = async () => {
@@ -57,10 +58,10 @@ function App() {
       snapshot.forEach((applicantSnap: any) => {
         tempappl.push(applicantSnap.val())
       });
-      setApplicants(tempappl);
+      dispatch(setApplicants(tempappl));
     };
     fetchApplicants();
-  }, []);
+  }, [dispatch]);
   
   return (
     <React.Fragment>
@@ -87,7 +88,7 @@ function App() {
           </Route>
 
           <Route path="/">
-            <ApplicantsList rawApplicants={applicants}></ApplicantsList>
+            <ApplicantsList></ApplicantsList>
           </Route>
           </Switch>
       </main>
