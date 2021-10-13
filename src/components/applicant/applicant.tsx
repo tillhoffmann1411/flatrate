@@ -1,40 +1,12 @@
-import { Container, FormControl, Grid, InputLabel, makeStyles, Select } from '@material-ui/core';
+import { Container, FormControl, Grid, InputLabel, Select, SelectChangeEvent, Typography } from '@mui/material';
 import IApplicant from '../../interfaces/applicant';
 import { get, ref, update } from 'firebase/database';
 import { db } from '../../App';
 import { useEffect } from 'react';
-import { Typography } from '@mui/material';
 import { useAppDispatch, useAppSelector } from '../../redux/store';
 import { setApplicant, updateApplicant } from '../../redux/reducers/applicants';
 
-
-const useStyles = makeStyles((theme) => ({
-  dot: {
-    height: '1rem',
-    width: '1rem',
-    borderRadius: '50%',
-    display: 'inline-block',
-  },
-  female: {
-    backgroundColor: '#e83e8c'
-  },
-  male: {
-    backgroundColor: '#007bff'
-  },
-  profileImage: {
-    maxWidth: '100%'
-  },
-  formControl: {
-    margin: theme.spacing(1),
-    minWidth: 120,
-  },
-  selectEmpty: {
-    marginTop: theme.spacing(2),
-  },
-}));
-
 export const Applicant = ({id}: {id: string}) => {
-  const classes = useStyles();
   const applicantsState = useAppSelector(state => state.applicantsReducer);
   const dispatch = useAppDispatch();
   const applicant = applicantsState.selectedApplicant;
@@ -64,23 +36,22 @@ export const Applicant = ({id}: {id: string}) => {
           <img
             src={applicant.imageUrl}
             alt={''}
-            className={classes.profileImage}
+            className={'profile-image'}
           />
         </Grid>
         <Grid item xs={12} sm={6}>
-          {
-              applicant.gender?
-              <span className={classes.dot + applicant.gender === 'Männlich' ? classes.male : classes.female}></span>
-              : undefined
-          }
-          <h1>{applicant.name}</h1>
+          <h1>
+            <span className={applicant.gender === 'Männlich' ? 'dot dot-male' : 'dot dot-female'}></span>
+            {applicant.name}
+          </h1>
         </Grid>
-        <Grid>
+        <Grid sx={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-evenly', width: '100%' }}>
           {
             getFlatmates().map(name => {
-              return <FormControl key={name} variant="outlined" className={classes.formControl}>
+              return <FormControl key={name} variant="outlined">
                 <InputLabel htmlFor="outlined-age-native-simple">{name}</InputLabel>
                 <Select
+                  autoWidth
                   native
                   value={applicant!.ratings[name.toLowerCase() as keyof IApplicant['ratings']]}
                   onChange={(event) => {
@@ -119,10 +90,12 @@ export const Applicant = ({id}: {id: string}) => {
   }
 }
 
-const handleChange = async (event: React.ChangeEvent<{ name?: string; value: unknown }>, id: string, ratings: IApplicant['ratings']) => {
+const handleChange = async (event: SelectChangeEvent<number>, id: string, ratings: IApplicant['ratings']) => {
+  console.log(event);
   const dbRef = ref(db, 'applicants/' + id);
   const name = event.target.name!.toLowerCase();
   const value = parseInt(event.target.value! as string);
+  console.log(name, ':', value);
   await update(dbRef, {
     ratings: {
       ...ratings,

@@ -1,16 +1,18 @@
-import { AppBar, CssBaseline, IconButton, makeStyles, Toolbar, Typography } from '@material-ui/core';
+import { AppBar, CssBaseline, IconButton, Toolbar, Typography } from '@mui/material';
 import './App.css';
 import { ApplicantsList } from './components/applicants-list/applicants-list';
 import { initializeApp } from 'firebase/app';
 import IApplicant from './interfaces/applicant';
 import { get, getDatabase, ref } from 'firebase/database';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Route, Switch, useHistory } from 'react-router-dom';
 import { Applicant } from './components/applicant/applicant';
 import React from 'react';
 import {firebaseEnv} from './env';
 import { setApplicants } from './redux/reducers/applicants';
 import { useAppDispatch } from './redux/store';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+
 
 const firebaseConfig = {
   apiKey: firebaseEnv.key,
@@ -27,17 +29,6 @@ const app = initializeApp(firebaseConfig);
 
 export const db = getDatabase(app);
 
-const useStyles = makeStyles((theme) => ({
-  root: {
-    flexGrow: 1,
-  },
-  menuButton: {
-    marginRight: theme.spacing(2),
-  },
-  title: {
-    flexGrow: 1,
-  },
-}));
 
 function ElevationScroll(props: React.PropsWithChildren<any>) {
   return React.cloneElement(props.children, {
@@ -46,9 +37,10 @@ function ElevationScroll(props: React.PropsWithChildren<any>) {
 }
 
 function App() {
-  const classes = useStyles();
   const history = useHistory();
   const dispatch = useAppDispatch();
+  const [path, setpath] = useState<string>('');
+  history.listen((location, action) => setpath(location.pathname));
 
   useEffect(() => {
     const fetchApplicants = async () => {
@@ -62,6 +54,8 @@ function App() {
     };
     fetchApplicants();
   }, [dispatch]);
+
+  console.log(path);
   
   return (
     <React.Fragment>
@@ -70,9 +64,19 @@ function App() {
         <ElevationScroll>
           <AppBar position="static">
             <Toolbar>
-              <IconButton edge="start" className={classes.menuButton} color="inherit" aria-label="menu">
-              </IconButton>
-              <Typography variant="h6" className={classes.title} onClick={() => history.push('/')}>
+              <IconButton
+                size="large"
+                edge="start"
+                color="inherit"
+                aria-label="menu"
+                sx={{ mr: 2 }}
+                onClick={path !== '/' && path !== ''? () => history.goBack() : undefined}
+              >
+                {path !== '/' && path !== ''?
+                <ArrowBackIcon />
+                :undefined}
+            </IconButton>
+              <Typography variant="h6" component="div" sx={{ flexGrow: 1 }} onClick={() => history.push('/')}>
                 flatrate
               </Typography>
             </Toolbar>

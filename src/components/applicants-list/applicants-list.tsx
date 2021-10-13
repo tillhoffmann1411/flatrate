@@ -1,8 +1,7 @@
-import { Avatar, Chip, List, ListItem, ListItemAvatar, ListItemText, Checkbox, FormControlLabel, FormGroup } from '@material-ui/core';
+import { Stack, Box, Container, TextField, ButtonGroup, Button, Avatar, Chip, List, ListItem, ListItemAvatar, ListItemText, Checkbox, FormControlLabel, FormGroup } from '@mui/material';
 import { useHistory } from 'react-router-dom';
 import IApplicant from '../../interfaces/applicant';
 import { useState, useEffect } from 'react';
-import { Stack, Box, Container, TextField, ButtonGroup, Button } from '@mui/material';
 import { useAppDispatch, useAppSelector } from '../../redux/store';
 import { setFilter } from '../../redux/reducers/filter';
 import { setApplicant } from '../../redux/reducers/applicants';

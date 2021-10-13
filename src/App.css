@@ -2,3 +2,29 @@
   height: calc(100vh - 3rem);
   padding: 0.5rem;
 }
+
+.score-chip {
+  width: 3rem;
+  margin-left: 0.5rem;
+}
+
+.dot {
+  height: 1.5rem;
+  width: 1.5rem;
+  border-radius: 50%;
+  display: inline-block;
+  vertical-align: baseline;
+  margin-right: 0.75rem;
+}
+
+.dot-female {
+  background-color: #e83e8c;
+}
+
+.dot-male {
+  background-color: #007bff;
+}
+
+.profile-image {
+  max-width: 100%;
+}
