@@ -1,4 +1,4 @@
-import { Button, Container, FormControl, Grid, InputLabel, Select, SelectChangeEvent, Typography } from '@mui/material';
+import { Button, Container, FormControl, Grid, Box, InputLabel, Select, SelectChangeEvent, Stack, Typography } from '@mui/material';
 import IApplicant from '../../interfaces/applicant';
 import { get, ref, update } from 'firebase/database';
 import { db } from '../../App';
@@ -40,71 +40,82 @@ export const Applicant = ({id}: {id: string}) => {
   if (applicant) {
     return <Grid container spacing={2}>
         <Grid item xs={12} sm={6}>
-          <img
-            src={applicant.imageUrl}
-            alt={''}
-            className={'profile-image'}
-          />
+          <Box sx={{ display: 'flex', justifyContent: 'center', width: '100%'}}>
+            <img
+              src={applicant.imageUrl}
+              alt={''}
+              className={'profile-image'}
+            />
+          </Box>
         </Grid>
         <Grid item xs={12} sm={6}>
-          <h1>
-            <span className={applicant.gender === 'Männlich' ? 'dot dot-male' : 'dot dot-female'}></span>
-            {applicant.name}
-          </h1>
-        </Grid>
-        <Grid sx={{ display: 'flex', justifyContent: 'center', mb: 3, width: '100%' }}>
-          <Button variant="outlined"  endIcon={<LaunchRoundedIcon />} href={'https://wg-bewerbertool.firebaseapp.com/edit-applicant?id=' + applicant.id}>
-            Bearbeiten
-          </Button>
-        </Grid>
-        <Grid sx={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-evenly', width: '100%', mt: 2 }}>
-          {
-            getFlatmates().map(name => {
-              return <FormControl key={name} variant="outlined">
-                <InputLabel htmlFor="outlined-age-native-simple">{name}</InputLabel>
-                <Select
-                  autoWidth
-                  native
-                  value={applicant!.ratings[name.toLowerCase() as keyof IApplicant['ratings']]}
-                  onChange={(event) => {
-                    handleChange(event, applicant!.id, applicant!.ratings);
+          <Stack spacing={2}>
+            <Box>
+              <h1>
+                <span className={applicant.gender === 'Männlich' ? 'dot dot-male' : 'dot dot-female'}></span>
+                {applicant.name}
+              </h1>
+            </Box>
 
-                    dispatch(updateApplicant({...applicant!, ratings: {
-                      ...applicant!.ratings,
-                      [name.toLowerCase() as keyof IApplicant['ratings']]: parseInt(event.target.value as string)}}));
-                  }}
-                  label="Rating"
-                  inputProps={{
-                    name: name,
-                  }}
-                >
-                  <option aria-label="None" value="" />
-                  <option value={1}>1</option>
-                  <option value={2}>2</option>
-                  <option value={3}>3</option>
-                  <option value={4}>4</option>
-                  <option value={5}>5</option>
-                </Select>
-              </FormControl>
-            })
-          }
-        </Grid>
-        <Grid item xs={12} sm={6}>
-          <hr />
-          <Container>
-            <Typography variant="body1" gutterBottom>
-              {applicant.text}
-            </Typography>
-          </Container>
-          <hr />
-        </Grid>
-        <Grid sx={{ display: 'flex', justifyContent: 'center', my: 3, width: '100%' }}>
-          <Button sx={{ mr: 2 }} variant="outlined" startIcon={<ArrowBackIcon />} onClick={() => history.goBack()}>
-            Zurück
-          </Button>
-          <Button variant="outlined" endIcon={<ArrowUpwardIcon />} onClick={scrollToTop}>
-            Nach oben
-          </Button>
+            <Box sx={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
+              <Button variant="outlined"  endIcon={<LaunchRoundedIcon />} href={'https://wg-bewerbertool.firebaseapp.com/edit-applicant?id=' + applicant.id} target="_blank" sx={{mb: 3}}>
+                Bearbeiten
+              </Button>
+            </Box>
+
+            <Box sx={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-evenly', width: '100%' }}>
+              {
+                getFlatmates().map(name => {
+                  return <FormControl key={name} variant="outlined">
+                    <InputLabel htmlFor="outlined-age-native-simple">{name}</InputLabel>
+                    <Select
+                      autoWidth
+                      native
+                      value={applicant!.ratings[name.toLowerCase() as keyof IApplicant['ratings']]}
+                      onChange={(event) => {
+                        handleChange(event, applicant!.id, applicant!.ratings);
+
+                        dispatch(updateApplicant({...applicant!, ratings: {
+                          ...applicant!.ratings,
+                          [name.toLowerCase() as keyof IApplicant['ratings']]: parseInt(event.target.value as string)}}));
+                      }}
+                      label="Rating"
+                      inputProps={{
+                        name: name,
+                      }}
+                    >
+                      <option aria-label="None" value="" />
+                      <option value={1}>1</option>
+                      <option value={2}>2</option>
+                      <option value={3}>3</option>
+                      <option value={4}>4</option>
+                      <option value={5}>5</option>
+                    </Select>
+                  </FormControl>
+                })
+              }
+            </Box>
+
+            <Box>
+              <hr />
+              <Container>
+                <Typography variant="body1" gutterBottom>
+                  {applicant.text}
+                </Typography>
+              </Container>
+              <hr />
+            </Box>
+
+            <Box sx={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
+              <Button sx={{ mr: 2, mb: 2 }} variant="outlined" startIcon={<ArrowBackIcon />} onClick={() => history.goBack()}>
+                Zurück
+              </Button>
+              <Button sx={{ mr: 2, mb: 2 }} variant="outlined" endIcon={<ArrowUpwardIcon />} onClick={scrollToTop}>
+                Nach oben
+              </Button>
+            </Box>
+
+          </Stack>
         </Grid>
     </Grid>
   } else {
