@@ -9,7 +9,6 @@ import { red, blue, orange, green } from '@mui/material/colors';
 import CancelIcon from '@mui/icons-material/Cancel';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import InsertInvitationIcon from '@mui/icons-material/InsertInvitation';
-import ThumbsUpDownIcon from '@mui/icons-material/ThumbsUpDown';
 import { addApplicant, removeApplicant } from '../../redux/reducers/edit';
 
 export function ApplicantsList() {
@@ -29,7 +28,12 @@ export function ApplicantsList() {
 
   return <Container sx={{ p: 0 }}>
     <FilterOptions/>
-    <Box sx={{ my: 3 }}><hr />Anzahl der Bewerber: {applicants.length}</Box> 
+    <Box sx={{ my: 3 }}>
+      <hr />
+      <div>Anzahl aller Bewerber: {applicants.length}</div>
+      <div>Anzahl der Einladungen: {applicants.filter(a => a.status === 'invited').length}</div>
+      <div>Anzahl Bewerber ohne Absage: {applicants.filter(a => a.status !== 'rejected').length}</div>
+    </Box> 
     <DisplayList applicants={applicants}/>
   </Container>
 }
@@ -43,7 +47,7 @@ const DisplayList = ({applicants}: {applicants: IApplicant[]}) => {
 const ApplicantListItem: FC<{applicant: IApplicant}> = ({ applicant }) => {
   const states = [
     { title: 'rejected', color: red[700], icon: <CancelIcon />},
-    { title: 'open', color: blue[700], icon: <ThumbsUpDownIcon />},
+    { title: 'open', color: blue[700], icon: <Box />},
     { title: 'invited', color: orange[700], icon: <InsertInvitationIcon />},
     { title: 'accpeted', color: green[700], icon: <CheckCircleIcon />},
   ]

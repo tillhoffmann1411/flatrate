@@ -36,13 +36,6 @@ const app = initializeApp(firebaseConfig);
 
 export const db = getDatabase(app);
 
-
-function ElevationScroll(props: React.PropsWithChildren<any>) {
-  return React.cloneElement(props.children, {
-    elevation: 0,
-  });
-}
-
 function App() {
   const history = useHistory();
   const dispatch = useAppDispatch();
@@ -62,13 +55,11 @@ function App() {
     fetchApplicants();
   }, [dispatch]);
 
-  console.log(path);
   
   return (
     <React.Fragment>
       <header>
         <CssBaseline />
-        <ElevationScroll>
           <AppBar position="fixed">
             <Toolbar>
               <IconButton
@@ -89,7 +80,7 @@ function App() {
               <EditButton />
             </Toolbar>
           </AppBar>
-        </ElevationScroll>
+          <Toolbar sx={{mb: 2}} />
       </header>
 
       <main className="App-main">
@@ -126,7 +117,6 @@ const EditButton: FC = () => {
 
   const handleOptionsClick = (mode: string) => {
     if (editState.editMode) {
-      console.log(editState.selectedApplicants);
       updateAllApplicants(editState.selectedApplicants, mode);
       dispatch(finishEditMode());
     }
