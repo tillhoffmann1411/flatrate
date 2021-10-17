@@ -6,14 +6,20 @@ import { useEffect } from 'react';
 import { useAppDispatch, useAppSelector } from '../../redux/store';
 import { setApplicant, updateApplicant } from '../../redux/reducers/applicants';
 import LaunchRoundedIcon from '@mui/icons-material/LaunchRounded';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import { useHistory } from 'react-router';
+import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
+
 
 export const Applicant = ({id}: {id: string}) => {
   const applicantsState = useAppSelector(state => state.applicantsReducer);
   const dispatch = useAppDispatch();
   const applicant = applicantsState.selectedApplicant;
   const applicants = applicantsState.applicants;
+  const history = useHistory();
 
-  window.scrollTo(0, 0);
+  const scrollToTop = () => window.scrollTo(0, 0);
+  scrollToTop();
 
   useEffect(() => {
     const fetch = async () => {
@@ -46,12 +52,12 @@ export const Applicant = ({id}: {id: string}) => {
             {applicant.name}
           </h1>
         </Grid>
-        <Grid sx={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
-          <Button variant="contained"  endIcon={<LaunchRoundedIcon />} onClick={() => window.open('https://wg-bewerbertool.firebaseapp.com/edit-applicant?id=' + applicant.id)}>
+        <Grid sx={{ display: 'flex', justifyContent: 'center', mb: 3, width: '100%' }}>
+          <Button variant="outlined"  endIcon={<LaunchRoundedIcon />} href={'https://wg-bewerbertool.firebaseapp.com/edit-applicant?id=' + applicant.id}>
             Bearbeiten
           </Button>
         </Grid>
-        <Grid sx={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-evenly', width: '100%' }}>
+        <Grid sx={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-evenly', width: '100%', mt: 2 }}>
           {
             getFlatmates().map(name => {
               return <FormControl key={name} variant="outlined">
@@ -84,11 +90,21 @@ export const Applicant = ({id}: {id: string}) => {
           }
         </Grid>
         <Grid item xs={12} sm={6}>
+          <hr />
           <Container>
             <Typography variant="body1" gutterBottom>
               {applicant.text}
             </Typography>
           </Container>
+          <hr />
+        </Grid>
+        <Grid sx={{ display: 'flex', justifyContent: 'center', my: 3, width: '100%' }}>
+          <Button sx={{ mr: 2 }} variant="outlined" startIcon={<ArrowBackIcon />} onClick={() => history.goBack()}>
+            Zurück
+          </Button>
+          <Button variant="outlined" endIcon={<ArrowUpwardIcon />} onClick={scrollToTop}>
+            Nach oben
+          </Button>
         </Grid>
     </Grid>
   } else {
