@@ -1,10 +1,16 @@
-import { Stack, Box, Container, TextField, ButtonGroup, Button, Avatar, Chip, List, ListItem, ListItemAvatar, ListItemText, Checkbox, FormControlLabel, FormGroup } from '@mui/material';
+import { Stack, Box, Container, TextField, ButtonGroup, Button, ListItemIcon, Avatar, Chip, List, ListItem, ListItemAvatar, ListItemText, Checkbox, FormControlLabel, FormGroup, Badge } from '@mui/material';
 import { useHistory } from 'react-router-dom';
 import IApplicant from '../../interfaces/applicant';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, FC } from 'react';
 import { useAppDispatch, useAppSelector } from '../../redux/store';
 import { setFilter } from '../../redux/reducers/filter';
 import { setApplicant } from '../../redux/reducers/applicants';
+import { red, blue, orange, green } from '@mui/material/colors';
+import CancelIcon from '@mui/icons-material/Cancel';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import InsertInvitationIcon from '@mui/icons-material/InsertInvitation';
+import ThumbsUpDownIcon from '@mui/icons-material/ThumbsUpDown';
+import { addApplicant, removeApplicant } from '../../redux/reducers/edit';
 
 export function ApplicantsList() {
   const dispatch = useAppDispatch();
@@ -23,35 +29,90 @@ export function ApplicantsList() {
 
   return <Container sx={{ p: 0 }}>
     <FilterOptions/>
-    <Box sx={{ my: 3 }}><hr /></Box> 
+    <Box sx={{ my: 3 }}><hr />Anzahl der Bewerber: {applicants.length}</Box> 
     <DisplayList applicants={applicants}/>
   </Container>
 }
 
 const DisplayList = ({applicants}: {applicants: IApplicant[]}) => {
+  return <List>
+    {applicants.map(appl => <ApplicantListItem key={appl.id} applicant={appl} />)}
+  </List>
+}
+
+const ApplicantListItem: FC<{applicant: IApplicant}> = ({ applicant }) => {
+  const states = [
+    { title: 'rejected', color: red[700], icon: <CancelIcon />},
+    { title: 'open', color: blue[700], icon: <ThumbsUpDownIcon />},
+    { title: 'invited', color: orange[700], icon: <InsertInvitationIcon />},
+    { title: 'accpeted', color: green[700], icon: <CheckCircleIcon />},
+  ]
   const history = useHistory();
   const dispatch = useAppDispatch();
+  const applicantStatus = states.find(s => s.title === applicant.status);
+  const editMode = useAppSelector(state => state.editReducer.editMode);
+  const [checked, setChecked] = useState<boolean>(false);
 
-  return <List>
-    {applicants.map(appl => {
-      return <ListItem key={appl.id} onClick={() => {
-                dispatch(setFilter({position: window.scrollY}));
-                history.push('/applicant/' + appl.id);
-            }}>
-          <ListItemAvatar>
-            <Avatar alt={appl.name} src={appl.imageUrl} />
-          </ListItemAvatar>
-            <ListItemText
-            primary={appl.name}
-            />
-            {appl.gender ?
-              <Chip size="small" color={appl.gender === "Männlich" ? "primary" : "secondary"} label={appl.gender === "Männlich" ? "M" : "W"}/>
-              : undefined
-            }
-            <Chip size="small" className={'score-chip'} label={calcRating(appl.ratings)}/>
-        </ListItem>;
-    })}
-  </List>
+  const handleClick = () => {
+    dispatch(setFilter({position: window.scrollY}));
+    history.push('/applicant/' + applicant.id);
+  };
+
+  const getBadge = () => {
+    if (applicantStatus) {
+      return applicantStatus.icon
+    } else {
+      return <Badge color="secondary" badgeContent=" " />
+    }
+  }
+
+  const handleCheck = () => {
+    setChecked(!checked);
+    if (!checked) {
+      dispatch(addApplicant(applicant));
+    } else {
+      dispatch(removeApplicant(applicant));
+    }
+  }
+  return (
+  <ListItem key={applicant.id} onClick={editMode? handleCheck : handleClick}>
+    { editMode?
+      <ListItemIcon>
+        <Checkbox
+          checked={checked}
+          tabIndex={-1}
+          disableRipple
+          inputProps={{ 'aria-labelledby': applicant.id }}
+        />
+      </ListItemIcon>
+    : undefined}
+    <ListItemAvatar>
+      { applicantStatus ?
+        <Badge
+        overlap="circular"
+        sx={{ color: applicantStatus.color, bgcolor: 'white' }}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+        badgeContent={getBadge()}
+        >
+        <Avatar alt={applicant.name} src={applicant.imageUrl} />
+      </Badge>
+      :
+      <Avatar alt={applicant.name} src={applicant.imageUrl} />
+    }
+    </ListItemAvatar>
+    <ListItemText primary={applicant.name}/>
+    <GenderChip gender={applicant.gender} />
+    <Chip size="small" className={'score-chip'} label={calcRating(applicant.ratings)}/>
+  </ListItem>)
+};
+
+const GenderChip: FC<{gender?: string}> = ({gender}) => {
+  if (!gender) {
+    return <span></span>;
+  }
+  const genderColor = gender === "Männlich" ? "primary" : "secondary";
+  const genderLabel = gender === "Männlich" ? "M" : "W";
+  return <Chip size="small" color={genderColor} label={genderLabel}/>;
 }
 
 const FilterOptions = () => {

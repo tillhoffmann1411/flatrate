@@ -13,4 +13,5 @@ export default interface IApplicant {
         "max": number,
         "emily": number
     }
+    status?: 'rejected' | 'open' | 'invited' | 'accepted',
 }

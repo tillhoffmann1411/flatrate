@@ -2,10 +2,11 @@ import { TypedUseSelectorHook, useDispatch, useSelector } from 'react-redux'
 import { combineReducers, createStore } from '@reduxjs/toolkit';
 import { applicantsReducer } from './reducers/applicants';
 import { filterReducer } from './reducers/filter';
+import { editReducer } from './reducers/edit';
 // import { composeWithDevTools } from '@reduxjs/toolkit/dist/devtoolsExtension';
 
 // const composedEnhancers = composeWithDevTools();
-export const store =  createStore(combineReducers({applicantsReducer, filterReducer}));
+export const store =  createStore(combineReducers({applicantsReducer, filterReducer, editReducer}));
 
 // Infer the `RootState` and `AppDispatch` types from the store itself
 export type RootState = ReturnType<typeof store.getState>

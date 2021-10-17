@@ -124,11 +124,9 @@ export const Applicant = ({id}: {id: string}) => {
 }
 
 const handleChange = async (event: SelectChangeEvent<number>, id: string, ratings: IApplicant['ratings']) => {
-  console.log(event);
   const dbRef = ref(db, 'applicants/' + id);
   const name = event.target.name!.toLowerCase();
   const value = parseInt(event.target.value! as string);
-  console.log(name, ':', value);
   await update(dbRef, {
     ratings: {
       ...ratings,
