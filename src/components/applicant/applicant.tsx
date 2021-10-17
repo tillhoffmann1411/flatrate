@@ -1,10 +1,11 @@
-import { Container, FormControl, Grid, InputLabel, Select, SelectChangeEvent, Typography } from '@mui/material';
+import { Button, Container, FormControl, Grid, InputLabel, Select, SelectChangeEvent, Typography } from '@mui/material';
 import IApplicant from '../../interfaces/applicant';
 import { get, ref, update } from 'firebase/database';
 import { db } from '../../App';
 import { useEffect } from 'react';
 import { useAppDispatch, useAppSelector } from '../../redux/store';
 import { setApplicant, updateApplicant } from '../../redux/reducers/applicants';
+import LaunchRoundedIcon from '@mui/icons-material/LaunchRounded';
 
 export const Applicant = ({id}: {id: string}) => {
   const applicantsState = useAppSelector(state => state.applicantsReducer);
@@ -44,6 +45,11 @@ export const Applicant = ({id}: {id: string}) => {
             <span className={applicant.gender === 'Männlich' ? 'dot dot-male' : 'dot dot-female'}></span>
             {applicant.name}
           </h1>
+        </Grid>
+        <Grid sx={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
+          <Button variant="contained"  endIcon={<LaunchRoundedIcon />} onClick={() => window.open('https://wg-bewerbertool.firebaseapp.com/edit-applicant?id=' + applicant.id)}>
+            Bearbeiten
+          </Button>
         </Grid>
         <Grid sx={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-evenly', width: '100%' }}>
           {
