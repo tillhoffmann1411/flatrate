@@ -77,6 +77,15 @@ function App() {
               <Typography variant="h6" component="div" sx={{ flexGrow: 1 }} onClick={() => history.push('/')}>
                 flatrate
               </Typography>
+              <IconButton
+                size="large"
+                color="inherit"
+                aria-label="synchronize"
+                sx={{ mr: 2 }}
+                onClick={handleSynch}
+              >
+                <ArrowBackIcon />
+              </IconButton>
               <EditButton />
             </Toolbar>
           </AppBar>
@@ -216,5 +225,21 @@ const updateApplicantStatus = async (applicant: IApplicant) => {
   const dbRef = ref(db, 'applicants/' + applicant.id);
   await update(dbRef, applicant);
 };
+
+const handleSynch = async () => {
+  const res = await fetch('http://localhost:8080/', {
+    method: 'POST',
+    headers: {
+      'Accept': 'application/json',
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      email: 'maike-simon1@web.de',
+      secondParam: 'RHW3092022',
+    })
+  });
+
+  console.log(res);
+}
 
 export default App;
