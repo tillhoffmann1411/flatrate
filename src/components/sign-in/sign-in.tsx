@@ -88,7 +88,7 @@ const SignIn: FC<React.ComponentProps<typeof Route>> = (props) => {
               label="Email Address"
               name="email"
               autoComplete="email"
-              autoFocus
+              type="email"
             />
             <TextField
               margin="normal"

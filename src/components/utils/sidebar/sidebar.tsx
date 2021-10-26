@@ -14,6 +14,7 @@ import SyncIcon from '@mui/icons-material/Sync';
 import PersonIcon from '@mui/icons-material/Person';
 import LoginIcon from '@mui/icons-material/Login';
 import GroupsIcon from '@mui/icons-material/Groups';
+import CreateIcon from '@mui/icons-material/Create';
 
 const drawerWidth = 300;
 
@@ -60,7 +61,7 @@ const Sidebar: FC<{sidebarOpen: boolean, openSidebar: () => void, closeSidebar: 
     { title: 'WG', icon: <GroupsIcon />, cb: () => handleClick('/wg'), auth: true },
     { title: 'Logout', icon: <LogoutIcon />, cb: () => handleClick('', logout), auth: true },
     { title: 'Login', icon: <LoginIcon />, cb: () => handleClick('/signin'), auth: false },
-    { title: 'Registrieren', icon: <div />, cb: () => handleClick('/signup'), auth: false },
+    { title: 'Registrieren', icon: <CreateIcon />, cb: () => handleClick('/signup'), auth: false },
   ];
 
 
