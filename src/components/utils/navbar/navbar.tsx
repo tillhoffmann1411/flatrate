@@ -33,7 +33,9 @@ const Navbar: FC<{sidebarOpen: boolean, openSidebar: () => void, closeSidebar: (
             flatrate
           </Typography>
 
-          <EditButton />
+          {sidebarOpen? undefined :
+            <EditButton />
+          }
         </Toolbar>
       </AppBar>
       <Toolbar />

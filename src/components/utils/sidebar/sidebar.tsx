@@ -1,4 +1,4 @@
-import { Drawer, IconButton, Divider, List, ListItem, ListItemIcon, ListItemText, useTheme, styled } from '@mui/material';
+import { Drawer, Divider, List, ListItem, ListItemIcon, ListItemText, useTheme, styled, Button, Box } from '@mui/material';
 import { FC } from 'react';
 import { useHistory } from 'react-router-dom';
 import { FirebaseService } from '../../../services/firebase.service';
@@ -13,6 +13,7 @@ import LogoutIcon from '@mui/icons-material/Logout';
 import SyncIcon from '@mui/icons-material/Sync';
 import PersonIcon from '@mui/icons-material/Person';
 import LoginIcon from '@mui/icons-material/Login';
+import GroupsIcon from '@mui/icons-material/Groups';
 
 const drawerWidth = 300;
 
@@ -56,6 +57,7 @@ const Sidebar: FC<{sidebarOpen: boolean, openSidebar: () => void, closeSidebar: 
     { title: 'Bewerber',  icon: <FormatListBulletedIcon />, cb: () => handleClick('/'), auth: true },
     { title: 'Synchronisieren', icon: <SyncIcon />, cb: () => handleClick('', handleSynch), auth: true },
     { title: 'Profile', icon: <PersonIcon />, cb: () => handleClick('/profile'), auth: true },
+    { title: 'WG', icon: <GroupsIcon />, cb: () => handleClick('/wg'), auth: true },
     { title: 'Logout', icon: <LogoutIcon />, cb: () => handleClick('', logout), auth: true },
     { title: 'Login', icon: <LoginIcon />, cb: () => handleClick('/signin'), auth: false },
     { title: 'Registrieren', icon: <div />, cb: () => handleClick('/signup'), auth: false },
@@ -77,9 +79,9 @@ const Sidebar: FC<{sidebarOpen: boolean, openSidebar: () => void, closeSidebar: 
         open={sidebarOpen}
       >
         <DrawerHeader>
-          <IconButton onClick={closeSidebar}>
-            {theme.direction === 'ltr' ? <ChevronLeftIcon /> : <ChevronRightIcon />}
-          </IconButton>
+          <Button endIcon={theme.direction === 'ltr' ? <ChevronLeftIcon /> : <ChevronRightIcon />}onClick={closeSidebar}>
+            Schließen
+          </Button>
         </DrawerHeader>
         <Divider />
         <List>
