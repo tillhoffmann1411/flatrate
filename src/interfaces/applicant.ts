@@ -1,7 +1,7 @@
 export default interface IApplicant {
     name: string,
     text: string,
-    gender?: string,
+    gender?: 'male' | 'female',
     when: number,
     imageUrl: string,
     wggId: string | undefined,

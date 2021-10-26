@@ -1,14 +1,13 @@
-import { Button, Container, FormControl, Grid, Box, InputLabel, Select, SelectChangeEvent, Stack, Typography } from '@mui/material';
-import IApplicant from '../../interfaces/applicant';
-import { get, ref, update } from 'firebase/database';
-import { db } from '../../App';
+import { Grid, Box, Stack } from '@mui/material';
 import { useEffect } from 'react';
 import { useAppDispatch, useAppSelector } from '../../redux/store';
-import { setApplicant, updateApplicant } from '../../redux/reducers/applicants';
-import LaunchRoundedIcon from '@mui/icons-material/LaunchRounded';
-import ArrowBackIcon from '@mui/icons-material/ArrowBack';
-import { useHistory } from 'react-router';
-import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
+import { setApplicant } from '../../redux/reducers/applicants';
+import { ApplicantRatings } from './applicant-rating';
+import { scrollToTop } from './applicant.service';
+import { ApplicantFooter } from './applicant-footer';
+import { ApplicantText } from './applicant-text';
+import { ApplicantEdit } from './applicant-edit';
+import { FirebaseService } from '../../services/firebase.service';
 
 
 export const Applicant = ({id}: {id: string}) => {
@@ -16,14 +15,11 @@ export const Applicant = ({id}: {id: string}) => {
   const dispatch = useAppDispatch();
   const applicant = applicantsState.selectedApplicant;
   const applicants = applicantsState.applicants;
-  const history = useHistory();
-
-  const scrollToTop = () => window.scrollTo(0, 0);
-  scrollToTop();
-
+  
+  
   useEffect(() => {
     const fetch = async () => {
-      const appl = await fetchApplicant(id);
+      const appl = await FirebaseService.getApplicant(id);
       dispatch(setApplicant(appl));
     };
     const cache = () => {
@@ -35,6 +31,7 @@ export const Applicant = ({id}: {id: string}) => {
     } else {
       cache();
     }
+    scrollToTop();
   }, [id, applicants, dispatch]);
   
   if (applicant) {
@@ -50,103 +47,26 @@ export const Applicant = ({id}: {id: string}) => {
         </Grid>
         <Grid item xs={12} sm={6}>
           <Stack spacing={2}>
+            
             <Box>
               <h1>
-                <span className={applicant.gender === 'Männlich' ? 'dot dot-male' : 'dot dot-female'}></span>
+                <span className={applicant.gender === 'male' ? 'dot dot-male' : 'dot dot-female'}></span>
                 {applicant.name}
               </h1>
             </Box>
 
-            <Box sx={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
-              <Button variant="outlined"  endIcon={<LaunchRoundedIcon />} href={'https://wg-bewerbertool.firebaseapp.com/edit-applicant?id=' + applicant.id} target="_blank" sx={{mb: 3}}>
-                Bearbeiten
-              </Button>
-            </Box>
+            <ApplicantEdit id={applicant.id} />
 
-            <Box sx={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-evenly', width: '100%' }}>
-              {
-                getFlatmates().map(name => {
-                  return <FormControl key={name} variant="outlined">
-                    <InputLabel htmlFor="outlined-age-native-simple">{name}</InputLabel>
-                    <Select
-                      autoWidth
-                      native
-                      value={applicant!.ratings[name.toLowerCase() as keyof IApplicant['ratings']]}
-                      onChange={(event) => {
-                        handleChange(event, applicant!.id, applicant!.ratings);
+            <ApplicantRatings applicant={applicant}/>
 
-                        dispatch(updateApplicant({...applicant!, ratings: {
-                          ...applicant!.ratings,
-                          [name.toLowerCase() as keyof IApplicant['ratings']]: parseInt(event.target.value as string)}}));
-                      }}
-                      label="Rating"
-                      inputProps={{
-                        name: name,
-                      }}
-                    >
-                      <option aria-label="None" value="" />
-                      <option value={1}>1</option>
-                      <option value={2}>2</option>
-                      <option value={3}>3</option>
-                      <option value={4}>4</option>
-                      <option value={5}>5</option>
-                    </Select>
-                  </FormControl>
-                })
-              }
-            </Box>
+            <ApplicantText text={applicant.text} />
 
-            <Box>
-              <hr />
-              <Container>
-                <Typography variant="body1" gutterBottom>
-                  {applicant.text}
-                </Typography>
-              </Container>
-              <hr />
-            </Box>
-
-            <Box sx={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
-              <Button sx={{ mr: 2, mb: 2 }} variant="outlined" startIcon={<ArrowBackIcon />} onClick={() => history.goBack()}>
-                Zurück
-              </Button>
-              <Button sx={{ mr: 2, mb: 2 }} variant="outlined" endIcon={<ArrowUpwardIcon />} onClick={scrollToTop}>
-                Nach oben
-              </Button>
-            </Box>
-
+            <ApplicantFooter />
+            
           </Stack>
         </Grid>
     </Grid>
   } else {
     return <div></div>
   }
-}
-
-const handleChange = async (event: SelectChangeEvent<number>, id: string, ratings: IApplicant['ratings']) => {
-  const dbRef = ref(db, 'applicants/' + id);
-  const name = event.target.name!.toLowerCase();
-  const value = parseInt(event.target.value! as string);
-  await update(dbRef, {
-    ratings: {
-      ...ratings,
-      [name]: value
-    }
-  });
-
-};
-
-const fetchApplicant = async (id: string): Promise<IApplicant> => {
-  const dbRef = ref(db, 'applicants/' + id);
-  const snapshot = await get(dbRef);
-  return snapshot.val() as IApplicant;
-}
-
-const getFlatmates = () => {
-  return [
-    'Maike',
-    'Emily',
-    'Till',
-    'Max'
-  ]
 }

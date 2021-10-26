@@ -1,245 +1,187 @@
-import { AppBar, Box, CssBaseline, IconButton, List, ListItem, ListItemIcon, ListItemText, Toolbar, Typography, Drawer } from '@mui/material';
-import './App.css';
-import { ApplicantsList } from './components/applicants-list/applicants-list';
-import { initializeApp } from 'firebase/app';
-import IApplicant from './interfaces/applicant';
-import { get, getDatabase, ref, update } from 'firebase/database';
-import { FC, useEffect, useState } from 'react';
-import { Route, Switch, useHistory } from 'react-router-dom';
-import { Applicant } from './components/applicant/applicant';
+import { Drawer, IconButton, Divider, List, ListItem, ListItemIcon, ListItemText, styled, useTheme, CssBaseline, Toolbar, Typography } from '@mui/material';
+import MuiAppBar, { AppBarProps as MuiAppBarProps } from '@mui/material/AppBar';
+
+import './styles/App.css';
+import { useEffect, useState } from 'react';
+import { Router } from './Router';
 import React from 'react';
-import {firebaseEnv} from './env';
-import { setApplicants, updateApplicant } from './redux/reducers/applicants';
-import { useAppDispatch, useAppSelector } from './redux/store';
-import ArrowBackIcon from '@mui/icons-material/ArrowBack';
-import EditIcon from '@mui/icons-material/Edit';
-import { finishEditMode, startEditMode } from './redux/reducers/edit';
-import MoreVertIcon from '@mui/icons-material/MoreVert';
-import CancelIcon from '@mui/icons-material/Cancel';
-import CheckCircleIcon from '@mui/icons-material/CheckCircle';
-import InsertInvitationIcon from '@mui/icons-material/InsertInvitation';
-import ThumbsUpDownIcon from '@mui/icons-material/ThumbsUpDown';
-import { red, blue, orange, green } from '@mui/material/colors';
+import { setApplicants } from './redux/reducers/applicants';
+import { useAppDispatch } from './redux/store';
 
-const firebaseConfig = {
-  apiKey: firebaseEnv.key,
-  authDomain: firebaseEnv.auth,
-  databaseURL: firebaseEnv.dbUrl,
-  projectId: firebaseEnv.project,
-  storageBucket: firebaseEnv.storage,
-  messagingSenderId: firebaseEnv.msgId,
-  appId: firebaseEnv.appId,
-  measurementId: firebaseEnv.measureId
-};
+import { FirebaseService } from './services/firebase.service';
+import { setUser } from './redux/reducers/user';
+import { IUser } from './interfaces/user';
+import Navbar from './components/navbar/navbar';
+import LoadingSpinner from './components/loading-spinner/loading-spinner';
 
-const app = initializeApp(firebaseConfig);
+import InboxIcon from '@mui/icons-material/MoveToInbox';
+import MailIcon from '@mui/icons-material/Mail';
+import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
+import ChevronRightIcon from '@mui/icons-material/ChevronRight';
+import MenuIcon from '@mui/icons-material/Menu';
 
-export const db = getDatabase(app);
+const drawerWidth = 240;
+
+const Main = styled('main', { shouldForwardProp: (prop) => prop !== 'open' })<{
+  open?: boolean;
+}>(({ theme, open }) => ({
+  flexGrow: 1,
+  padding: theme.spacing(1),
+  transition: theme.transitions.create('margin', {
+    easing: theme.transitions.easing.sharp,
+    duration: theme.transitions.duration.leavingScreen,
+  }),
+  //marginLeft: `-${drawerWidth}px`,
+  ...(open && {
+    transition: theme.transitions.create('margin', {
+      easing: theme.transitions.easing.easeOut,
+      duration: theme.transitions.duration.enteringScreen,
+    }),
+    marginLeft: 0,
+  }),
+}));
+
+const DrawerHeader = styled('div')(({ theme }) => ({
+  display: 'flex',
+  alignItems: 'center',
+  padding: theme.spacing(0, 1),
+  // necessary for content to be below app bar
+  ...theme.mixins.toolbar,
+  justifyContent: 'flex-end',
+}));
+
 
 function App() {
-  const history = useHistory();
   const dispatch = useAppDispatch();
-  const [path, setpath] = useState<string>('');
-  history.listen((location, action) => setpath(location.pathname));
+  const [loading, setLoading] = useState<boolean>(false);
+
+  const theme = useTheme();
+  const [open, setOpen] = React.useState(false);
+
+  const handleDrawerOpen = () => {
+    setOpen(true);
+  };
+
+  const handleDrawerClose = () => {
+    setOpen(false);
+  };
+
+
 
   useEffect(() => {
     const fetchApplicants = async () => {
-      const dbRef = ref(db, 'applicants');
-      const snapshot = await get(dbRef);
-      const tempappl: IApplicant[] = [];
-      snapshot.forEach((applicantSnap: any) => {
-        tempappl.push(applicantSnap.val())
-      });
+      const tempappl = await FirebaseService.getApplicants();
       dispatch(setApplicants(tempappl));
     };
-    fetchApplicants();
+    const getCurrentUser = () => {
+      FirebaseService.onAuthStateChanged(async (user: IUser | undefined) => {
+        if (user) {
+          dispatch(setUser(user));
+          await fetchApplicants();
+        }
+        setLoading(false);
+      });
+    }
+    setLoading(true);
+    getCurrentUser();
   }, [dispatch]);
 
-  
-  return (
-    <React.Fragment>
-      <header>
-        <CssBaseline />
-          <AppBar position="fixed">
+  if (loading) {
+    return <LoadingSpinner />
+  } else {
+    return (
+      <React.Fragment>
+        <header>
+          {/* <Navbar /> */}
+          <CssBaseline />
+          <AppBar position="fixed" open={open}>
             <Toolbar>
               <IconButton
-                size="large"
+                color="inherit"
+                aria-label="open drawer"
+                onClick={handleDrawerOpen}
                 edge="start"
-                color="inherit"
-                aria-label="menu"
-                sx={{ mr: 2 }}
-                onClick={path !== '/' && path !== ''? () => history.goBack() : undefined}
+                sx={{ mr: 2, ...(open && { display: 'none' }) }}
               >
-                {path !== '/' && path !== ''?
-                <ArrowBackIcon />
-                :undefined}
+                <MenuIcon />
               </IconButton>
-              <Typography variant="h6" component="div" sx={{ flexGrow: 1 }} onClick={() => history.push('/')}>
-                flatrate
+              <Typography variant="h6" noWrap component="div">
+                Persistent drawer
               </Typography>
-              <IconButton
-                size="large"
-                color="inherit"
-                aria-label="synchronize"
-                sx={{ mr: 2 }}
-                onClick={handleSynch}
-              >
-                <ArrowBackIcon />
-              </IconButton>
-              <EditButton />
             </Toolbar>
           </AppBar>
-          <Toolbar sx={{mb: 2}} />
-      </header>
+        </header>
 
-      <main className="App-main">
-        <Switch>
-          <Route path="/applicant/:id" render={({match}) => {
-              return <Applicant id={match.params.id}/>
-            }}>
-          </Route>
-
-          <Route path="/">
-            <ApplicantsList></ApplicantsList>
-          </Route>
-          </Switch>
-      </main>
-    </React.Fragment>
-  );
-}
-
-const EditButton: FC = () => {
-  const history = useHistory();
-  const dispatch = useAppDispatch();
-  const editState = useAppSelector(state => state.editReducer);
-  const path = history.location.pathname;
-
-  if (path !== '/') {
-    return <div></div>
-  }
-
-  const handleEditClick = () => {
-    if (!editState.editMode) {
-      dispatch(startEditMode());
-    }
-  }
-
-  const handleOptionsClick = (mode: string) => {
-    if (editState.editMode) {
-      updateAllApplicants(editState.selectedApplicants, mode);
-      dispatch(finishEditMode());
-    }
-  }
-
-  const updateAllApplicants = async (applicants: IApplicant[], status: string) => {
-    applicants.forEach(async (applicant) => {
-      const newApplicant = {...applicant, status: status as IApplicant['status']};
-      await updateApplicantStatus(newApplicant);
-      dispatch(updateApplicant(newApplicant));
-    });
-  }
-
-  if (editState.editMode) {
-    return <EditDrawer selectedMode={(mode) => handleOptionsClick(mode)} />
-  } else {
-    return <IconButton
-      size="large"
-      edge="end"
-      color="inherit"
-      aria-label="edit"
-      onClick={handleEditClick}
-    >
-      <EditIcon />
-    </IconButton>
-  }
-}
-
-const EditDrawer: FC<{ selectedMode: (mode: string) => void }> = ({selectedMode}) => {
-  const [state, setState] = useState({mode: false});
-  const toggleDrawer = (open: boolean) => (event: React.KeyboardEvent | React.MouseEvent) => {
-    if (event.type === 'keydown' &&
-      ((event as React.KeyboardEvent).key === 'Tab' ||
-        (event as React.KeyboardEvent).key === 'Shift')
-    ) {
-      return;
-    }
-    setState({ ...state, mode: open });
-  };
-
-  return (
-      <React.Fragment>
-        <IconButton
-          size="large"
-          color="inherit"
-          aria-label="options"
-          onClick={toggleDrawer(true)}
-        >
-          <MoreVertIcon />
-        </IconButton>
         <Drawer
-          anchor={'bottom'}
-          open={state.mode}
-          onClose={toggleDrawer(false)}
-          children={<EditMenu toggleDrawer={toggleDrawer} selectedMode={selectedMode} />}
-        />
+        sx={{
+          width: drawerWidth,
+          flexShrink: 0,
+          '& .MuiDrawer-paper': {
+            width: drawerWidth,
+            boxSizing: 'border-box',
+          },
+        }}
+        variant="persistent"
+        anchor="left"
+        open={open}
+      >
+        <DrawerHeader>
+          <IconButton onClick={handleDrawerClose}>
+            {theme.direction === 'ltr' ? <ChevronLeftIcon /> : <ChevronRightIcon />}
+          </IconButton>
+        </DrawerHeader>
+        <Divider />
+        <List>
+          {['Inbox', 'Starred', 'Send email', 'Drafts'].map((text, index) => (
+            <ListItem button key={text}>
+              <ListItemIcon>
+                {index % 2 === 0 ? <InboxIcon /> : <MailIcon />}
+              </ListItemIcon>
+              <ListItemText primary={text} />
+            </ListItem>
+          ))}
+        </List>
+        <Divider />
+        <List>
+          {['All mail', 'Trash', 'Spam'].map((text, index) => (
+            <ListItem button key={text}>
+              <ListItemIcon>
+                {index % 2 === 0 ? <InboxIcon /> : <MailIcon />}
+              </ListItemIcon>
+              <ListItemText primary={text} />
+            </ListItem>
+          ))}
+        </List>
+      </Drawer>
+
+        <Main open={open}>
+          <DrawerHeader />
+          <Router />
+        </Main>
       </React.Fragment>
-  );
+    );
+  }
 }
 
+const AppBar = styled(MuiAppBar, {
+  shouldForwardProp: (prop) => prop !== 'open',
+})<AppBarProps>(({ theme, open }) => ({
+  transition: theme.transitions.create(['margin', 'width'], {
+    easing: theme.transitions.easing.sharp,
+    duration: theme.transitions.duration.leavingScreen,
+  }),
+  ...(open && {
+    width: `calc(100% - ${drawerWidth}px)`,
+    marginLeft: `${drawerWidth}px`,
+    transition: theme.transitions.create(['margin', 'width'], {
+      easing: theme.transitions.easing.easeOut,
+      duration: theme.transitions.duration.enteringScreen,
+    }),
+  }),
+}));
 
-const EditMenu: FC<{toggleDrawer: (open: boolean) => void, selectedMode: (mode: string) => void}> = ({toggleDrawer, selectedMode}) => {
-  const states = [
-    { title: 'rejected', color: red[700], icon: <CancelIcon />},
-    { title: 'open', color: blue[700], icon: <ThumbsUpDownIcon />},
-    { title: 'invited', color: orange[700], icon: <InsertInvitationIcon />},
-    { title: 'accpeted', color: green[700], icon: <CheckCircleIcon />},
-  ]
-
-  const handleClick = (mode: string) => {
-    selectedMode(mode);
-  }
-  return (
-  <Box
-    sx={{ width: 'auto' }}
-    role="presentation"
-    onClick={() => toggleDrawer(false)}
-    onKeyDown={() => toggleDrawer(false)}
-  >
-    <List>
-      {states.map((state, index) => (
-        <ListItem button key={state.title} sx={{ color: state.color }} onClick={() => handleClick(state.title)}>
-          <ListItemIcon sx={{ color: state.color }}>
-            {state.icon}
-          </ListItemIcon>
-          <ListItemText primary={state.title} />
-        </ListItem>
-      ))}
-      <ListItem button key={'cancel'} onClick={() => handleClick('')}>
-          <ListItemText primary={'Abbrechen'} />
-        </ListItem>
-    </List>
-  </Box>)
-};
-
-const updateApplicantStatus = async (applicant: IApplicant) => {
-  const dbRef = ref(db, 'applicants/' + applicant.id);
-  await update(dbRef, applicant);
-};
-
-const handleSynch = async () => {
-  const res = await fetch('http://localhost:8080/', {
-    method: 'POST',
-    headers: {
-      'Accept': 'application/json',
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({
-      email: 'maike-simon1@web.de',
-      secondParam: 'RHW3092022',
-    })
-  });
-
-  console.log(res);
+interface AppBarProps extends MuiAppBarProps {
+  open?: boolean;
 }
 
 export default App;

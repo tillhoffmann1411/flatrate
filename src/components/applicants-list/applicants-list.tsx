@@ -3,7 +3,7 @@ import IApplicant from '../../interfaces/applicant';
 import { useState, useEffect, FC } from 'react';
 import { useAppDispatch, useAppSelector } from '../../redux/store';
 import { setApplicant } from '../../redux/reducers/applicants';
-import { FilterOptions } from './filter';
+import { FilterOptions } from './applicants-list-filter';
 import { ApplicantListItem } from './applicants-list-item';
 import { applySearch, applySort, filterSex } from './applicants-list.service';
 

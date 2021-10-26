@@ -85,7 +85,7 @@ const GenderChip: FC<{gender?: string}> = ({gender}) => {
   if (!gender) {
     return <span></span>;
   }
-  const genderColor = gender === "Männlich" ? "primary" : "secondary";
-  const genderLabel = gender === "Männlich" ? "M" : "W";
+  const genderColor = gender === "male" || gender === 'Männlich' ? "primary" : "secondary";
+  const genderLabel = gender === "male" || gender === 'Männlich' ? "M" : "W";
   return <Chip size="small" color={genderColor} label={genderLabel}/>;
 }
