@@ -1,4 +1,4 @@
-import { createUserWithEmailAndPassword, signInWithEmailAndPassword, updateProfile, User } from '@firebase/auth';
+import { createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, updateProfile, User } from '@firebase/auth';
 import { ref, update, get } from '@firebase/database';
 import { auth, db } from '../config/firebase.config';
 import IApplicant from '../interfaces/applicant';
@@ -63,6 +63,6 @@ export class FirebaseService {
   }
 
   static async signOut() {
-
+    await signOut(auth);
   }
 }

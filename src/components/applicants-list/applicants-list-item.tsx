@@ -63,10 +63,10 @@ export const ApplicantListItem: FC<{applicant: IApplicant}> = ({ applicant }) =>
     <ListItemAvatar>
       { applicantStatus ?
         <Badge
-        overlap="circular"
-        sx={{ color: applicantStatus.color, bgcolor: 'white' }}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-        badgeContent={getBadge()}
+          overlap="circular"
+          sx={{ color: applicantStatus.color, bgcolor: 'white' }}
+          anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+          badgeContent={getBadge()}
         >
         <Avatar alt={applicant.name} src={applicant.imageUrl} />
       </Badge>

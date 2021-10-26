@@ -1,11 +1,11 @@
 import { IconButton } from '@mui/material';
 import { FC } from 'react';
 import { useHistory } from 'react-router-dom';
-import IApplicant from '../../interfaces/applicant';
-import { updateApplicant } from '../../redux/reducers/applicants';
-import { startEditMode, finishEditMode } from '../../redux/reducers/edit';
-import { useAppDispatch, useAppSelector } from '../../redux/store';
-import { FirebaseService } from '../../services/firebase.service';
+import IApplicant from '../../../interfaces/applicant';
+import { updateApplicant } from '../../../redux/reducers/applicants';
+import { startEditMode, finishEditMode } from '../../../redux/reducers/edit';
+import { useAppDispatch, useAppSelector } from '../../../redux/store';
+import { FirebaseService } from '../../../services/firebase.service';
 import EditDrawer from './navbar-edit-drawer';
 
 import EditIcon from '@mui/icons-material/Edit';
