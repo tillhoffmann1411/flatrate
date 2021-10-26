@@ -4,6 +4,7 @@ import Button from '@mui/material/Button';
 import CssBaseline from '@mui/material/CssBaseline';
 import TextField from '@mui/material/TextField';
 import Link from '@mui/material/Link';
+import { Link as RouterLink } from 'react-router-dom';
 import Grid from '@mui/material/Grid';
 import Box from '@mui/material/Box';
 import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
@@ -17,7 +18,7 @@ function Copyright(props: any) {
   return (
     <Typography variant="body2" color="text.secondary" align="center" {...props}>
       {'Copyright © '}
-      <Link color="inherit" href="https://flatrate.web.app">
+      <Link color="inherit" component={RouterLink} to="https://flatrate.web.app">
         flatrate
       </Link>{' '}
       {new Date().getFullYear()}
@@ -127,7 +128,7 @@ export default function SignUp() {
             </Button>
             <Grid container justifyContent="flex-end">
               <Grid item>
-                <Link href="/signin" variant="body2">
+                <Link component={RouterLink} to="/signin" variant="body2">
                   Already have an account? Sign in
                 </Link>
               </Grid>
