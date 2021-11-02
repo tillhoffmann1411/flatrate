@@ -26,7 +26,7 @@ const Apartment: FC<React.ComponentProps<typeof Route>> = (props) => {
           <Typography component="h1" variant="h5">
             WG erstellen
           </Typography>
-          <Box component="form" onSubmit={() => console.log()} noValidate sx={{ mt: 1 }}>
+          <Box component="form" noValidate sx={{ mt: 1 }}>
             <TextField
               margin="normal"
               required

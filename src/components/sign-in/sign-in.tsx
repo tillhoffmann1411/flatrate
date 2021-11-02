@@ -11,7 +11,7 @@ import Typography from '@mui/material/Typography';
 import Container from '@mui/material/Container';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import { Route, useHistory } from 'react-router-dom';
-import { FC } from 'react';
+import { FC, useEffect } from 'react';
 import { useAppDispatch, useAppSelector } from '../../redux/store';
 import { signIn } from '../../redux/reducers/user';
 
@@ -55,10 +55,11 @@ const SignIn: FC<React.ComponentProps<typeof Route>> = (props) => {
     }
   };
 
-  if (loggedIn) {
-    history.push(fromPath);
-  }
-
+  useEffect(() => {
+    if (loggedIn) {
+      history.push(fromPath);
+    }
+  }, [loggedIn, history, fromPath]);
   
   return (
     <ThemeProvider theme={theme}>
