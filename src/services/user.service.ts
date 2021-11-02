@@ -1,6 +1,7 @@
 import { firestore } from '../config/firebase.config';
-import { collection, deleteDoc, doc, DocumentData, DocumentSnapshot, getDoc, getDocs, query, QuerySnapshot, setDoc, Timestamp, updateDoc, where } from 'firebase/firestore';
+import { collection, deleteDoc, doc, DocumentData, DocumentReference, DocumentSnapshot, getDoc, getDocs, query, QuerySnapshot, setDoc, Timestamp, updateDoc, where } from 'firebase/firestore';
 import { IUser } from '../interfaces/user';
+import { IApartment } from '../interfaces/apartment';
 
 interface IFirestoreUser {
   id: string,
@@ -8,7 +9,13 @@ interface IFirestoreUser {
   lastName: string,
   email: string,
   createdAt: Timestamp,
-  apartment: string
+  apartment: DocumentReference | undefined
+}
+
+interface IFirebaseApartment {
+  id: string,
+  name: string,
+  flatmates: DocumentReference[]
 }
 
 
@@ -23,7 +30,7 @@ export class UserService {
       lastName: user.lastName,
       email: user.email,
       createdAt: Timestamp.fromDate(user.createdAt),
-      apartment: ''
+      apartment: undefined
     } as IFirestoreUser
     
     if (user.apartment) {
@@ -31,7 +38,7 @@ export class UserService {
       const apartmentDoc = doc(apartmentCol, user.apartment.id);
       userData = {
         ...userData,
-        apartment: apartmentDoc.path
+        apartment: apartmentDoc
       }
     }
 
@@ -52,7 +59,7 @@ export class UserService {
     try {
       return await UserService.getDataFromDocument(docSnap);
     } catch (e) {
-      console.error('No such document!');
+      console.error('No such document! ', e);
       return undefined;
     }
   }
@@ -83,16 +90,17 @@ export class UserService {
       firstName: user.firstName,
       lastName: user.lastName,
       email: user.email,
-      createdAt: user.createdAt,
-      apartment: ''
-    };
-    
+      createdAt: Timestamp.fromDate(user.createdAt),
+      apartment: undefined
+    } as Partial<IFirestoreUser>;
+
+    console.log(user);
     if (user.apartment) {
       const apartmentCol = collection(firestore, 'apartments');
       const apartmentDoc = doc(apartmentCol, user.apartment.id);
       userData = {
         ...userData,
-        apartment: apartmentDoc.path
+        apartment: apartmentDoc
       }
     }
 
@@ -108,11 +116,38 @@ export class UserService {
   }
 
   static async deleteUser(userId: IUser['id']): Promise<void> {
-    const userRef = doc(firestore, 'users/' + userId);
+    const userRef = doc(firestore, 'users' + userId);
     try {
       await deleteDoc(userRef);
     } catch(e) {
       const msg = 'Error by deleting user in Firestore: ' + e;
+      console.error(msg);
+      throw new Error(msg);
+    }
+  }
+
+  static async createApartment(name: string, flatmateIds: string[]): Promise<IApartment> {
+    const apartmentCol = collection(firestore, 'apartments');
+    const apartmentDoc = doc(apartmentCol);
+
+    const flatmateRefs: DocumentReference[] = flatmateIds.map(id => doc(collection(firestore, 'users'), id))
+    const flatmates = (await Promise.all(flatmateIds.map(async id => await UserService.getUser(id)))).filter(f => f) as IUser[];
+
+    const firebaseApartment: IFirebaseApartment = {
+      id: apartmentDoc.id,
+      flatmates: flatmateRefs,
+      name,
+    };
+    const apartment: IApartment = {
+      id: apartmentDoc.id,
+      flatmates,
+      name
+    }
+    try {
+      await setDoc(apartmentDoc, firebaseApartment);
+      return apartment;
+    } catch (e) {
+      const msg = 'Error by creating apartmentDoc in Firestore: ' + e;
       console.error(msg);
       throw new Error(msg);
     }

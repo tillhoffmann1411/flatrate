@@ -2,6 +2,7 @@ import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import { IUser } from '../../interfaces/user';
 import { AuthService } from '../../services/auth.service';
 import { UserService } from '../../services/user.service';
+import { RootState } from '../store';
 
 interface IUserState {
   user: IUser | undefined,
@@ -36,7 +37,7 @@ export const signIn = createAsyncThunk<
     } catch (e) {
       const msg = 'Error by signin: ' + e;
       console.log(msg);
-      thunkApi.rejectWithValue({msg});
+      return thunkApi.rejectWithValue({msg});
     }
   }
 );
@@ -64,7 +65,7 @@ export const signUp = createAsyncThunk<
     } catch (e) {
       const msg = 'Error by signup: ' + e;
       console.log(msg);
-      thunkApi.rejectWithValue({msg});
+      return thunkApi.rejectWithValue({msg});
     }
   }
 );
@@ -80,11 +81,11 @@ export const loadUser = createAsyncThunk<
     try {
       user = await UserService.getUser(cred.id);
       if (user) return user;
-      else throw new Error();
+      else throw new Error('No User found for id: ' + cred.id);
     } catch (e) {
       const msg = 'Error by loadUser: ' + e;
       console.log(msg);
-      thunkApi.rejectWithValue({msg});
+      return thunkApi.rejectWithValue({msg});
     }
   }
 );
@@ -101,7 +102,34 @@ export const signOut = createAsyncThunk<
     } catch (e) {
       const msg = 'Error by signOut: ' + e;
       console.log(msg);
-      thunkApi.rejectWithValue({msg});
+      return thunkApi.rejectWithValue({msg});
+    }
+  }
+);
+
+export const createApartment = createAsyncThunk<
+  IUser | undefined,
+  { name: string },
+  { rejectValue: UserError, state: RootState }
+  >('user/createApartment', async (apartmentInfo, { getState, rejectWithValue }) => {
+    const user = getState().userReducer.user as IUser | undefined;
+    try {
+      if (user) {
+        const apartment = await UserService.createApartment(apartmentInfo.name, [user.id]);
+        console.log('redux:', apartment, user);
+        if (apartment) {
+          const newUser = {
+            ...user,
+            apartment
+          };
+          const updatedUser = await UserService.updateUser(newUser);
+          return updatedUser;
+        }
+      }
+    } catch (e) {
+      const msg = 'Error by signin: ' + e;
+      console.log(msg);
+      return rejectWithValue({msg});
     }
   }
 );
