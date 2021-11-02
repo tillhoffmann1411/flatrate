@@ -11,9 +11,9 @@ import Typography from '@mui/material/Typography';
 import Container from '@mui/material/Container';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import { Route, useHistory } from 'react-router-dom';
-import { FirebaseService } from '../../services/firebase.service';
-import { FC, useEffect } from 'react';
-import { useAppSelector } from '../../redux/store';
+import { FC } from 'react';
+import { useAppDispatch, useAppSelector } from '../../redux/store';
+import { signIn } from '../../redux/reducers/user';
 
 function Copyright(props: any) {
   return (
@@ -32,8 +32,9 @@ const theme = createTheme();
 
 const SignIn: FC<React.ComponentProps<typeof Route>> = (props) => {
   const history = useHistory();
+  const dispatch = useAppDispatch();
   const loggedIn = useAppSelector(state => state.userReducer.loggedIn);
-  const fromPath = props.location!['state']? (props.location!.state as any).pathname : '/';
+  const fromPath = props.location!['state']? (props.location!.state as any).from.pathname : '/';
 
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -44,7 +45,7 @@ const SignIn: FC<React.ComponentProps<typeof Route>> = (props) => {
       password: data.get('password') as string
     };
     if (user.email && user.password) {
-      await FirebaseService.signIn(user.email, user.password);
+      dispatch(signIn({ email: user.email, password: user.password}));
       if (loggedIn) {
         history.push(fromPath);
       }
@@ -54,11 +55,9 @@ const SignIn: FC<React.ComponentProps<typeof Route>> = (props) => {
     }
   };
 
-  useEffect(() => {
-    if (loggedIn) {
-      history.push(fromPath);
-    }
-  }, [loggedIn, history, fromPath]);
+  if (loggedIn) {
+    history.push(fromPath);
+  }
 
   
   return (

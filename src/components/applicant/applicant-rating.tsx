@@ -3,7 +3,7 @@ import { FC } from 'react';
 import IApplicant from '../../interfaces/applicant';
 import { updateApplicant } from '../../redux/reducers/applicants';
 import { useAppDispatch } from '../../redux/store';
-import { FirebaseService } from '../../services/firebase.service';
+import { ApplicantService } from '../../services/applicant.service';
 import { getFlatmates } from './applicant.service';
 
 export const ApplicantRatings: FC<{applicant: IApplicant}> = ({ applicant }) => {
@@ -29,7 +29,7 @@ export const ApplicantRatings: FC<{applicant: IApplicant}> = ({ applicant }) => 
                     [name]: value
                   }
                 }
-                FirebaseService.updateApplicant(newApplicant);
+                ApplicantService.updateApplicant(newApplicant);
   
                 dispatch(updateApplicant({...applicant, ratings: {
                   ...applicant!.ratings,

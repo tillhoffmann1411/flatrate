@@ -7,7 +7,7 @@ import { scrollToTop } from './applicant.service';
 import { ApplicantFooter } from './applicant-footer';
 import { ApplicantText } from './applicant-text';
 import { ApplicantEdit } from './applicant-edit';
-import { FirebaseService } from '../../services/firebase.service';
+import { ApplicantService } from '../../services/applicant.service';
 
 
 export const Applicant = ({id}: {id: string}) => {
@@ -19,7 +19,7 @@ export const Applicant = ({id}: {id: string}) => {
   
   useEffect(() => {
     const fetch = async () => {
-      const appl = await FirebaseService.getApplicant(id);
+      const appl = await ApplicantService.getApplicant(id);
       dispatch(setApplicant(appl));
     };
     const cache = () => {

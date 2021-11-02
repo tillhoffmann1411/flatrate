@@ -11,8 +11,9 @@ import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 import Typography from '@mui/material/Typography';
 import Container from '@mui/material/Container';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
-import { FirebaseService } from '../../services/firebase.service';
 import { useHistory } from 'react-router-dom';
+import { useAppDispatch } from '../../redux/store';
+import { signUp } from '../../redux/reducers/user';
 
 function Copyright(props: any) {
   return (
@@ -31,6 +32,7 @@ const theme = createTheme();
 
 export default function SignUp() {
   const history = useHistory();
+  const dispatch = useAppDispatch();
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const data = new FormData(event.currentTarget);
@@ -41,8 +43,7 @@ export default function SignUp() {
       password: data.get('password') as string
     };
     if (newUser.firstName && newUser.lastName && newUser.email && newUser.password) {
-      await FirebaseService.signUp(newUser.firstName, newUser.lastName, newUser.email, newUser.password);
-      console.log(newUser);
+      dispatch(signUp({ firstName: newUser.firstName, lastName: newUser.lastName, email: newUser.email, password: newUser.password }));
       history.push('/');
     } else {
       console.error('Error by sign up, check the form!');

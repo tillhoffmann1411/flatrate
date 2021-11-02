@@ -1,21 +1,22 @@
 import './styles/App.css';
-import { FC, useEffect, useState } from 'react';
+import { FC, useEffect } from 'react';
 import React from 'react';
 import { setApplicants } from './redux/reducers/applicants';
-import { useAppDispatch } from './redux/store';
+import { useAppDispatch, useAppSelector } from './redux/store';
 
-import { FirebaseService } from './services/firebase.service';
-import { setUser } from './redux/reducers/user';
-import { IUser } from './interfaces/user';
+import { loadUser } from './redux/reducers/user';
+import { IAuthUser } from './interfaces/user';
 import Navbar from './components/utils/navbar/navbar';
 import LoadingSpinner from './components/utils/loading-spinner/loading-spinner';
 import Sidebar from './components/utils/sidebar/sidebar';
 import Main from './components/utils/main/main';
 import { Router } from './Router';
+import { ApplicantService } from './services/applicant.service';
+import { AuthService } from './services/auth.service';
 
 const App: FC = () => {
   const dispatch = useAppDispatch();
-  const [loading, setLoading] = useState<boolean>(false);
+  const loading = useAppSelector(state => state.userReducer.loading);
   const [open, setOpen] = React.useState(false);
 
   const openSidebar = () => {
@@ -28,19 +29,17 @@ const App: FC = () => {
 
   useEffect(() => {
     const fetchApplicants = async () => {
-      const tempappl = await FirebaseService.getApplicants();
+      const tempappl = await ApplicantService.getApplicants();
       dispatch(setApplicants(tempappl));
     };
     const getCurrentUser = () => {
-      FirebaseService.onAuthStateChanged(async (user: IUser | undefined) => {
-        if (user) {
-          dispatch(setUser(user));
+      AuthService.onAuthStateChanged(async (authUser: IAuthUser | undefined) => {
+        if (authUser) {
+          dispatch(loadUser({ id: authUser.id }));
           await fetchApplicants();
         }
-        setLoading(false);
       });
     }
-    setLoading(true);
     getCurrentUser();
   }, [dispatch]);
 

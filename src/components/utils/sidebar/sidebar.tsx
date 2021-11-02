@@ -1,7 +1,6 @@
-import { Drawer, Divider, List, ListItem, ListItemIcon, ListItemText, useTheme, styled, Button, Box } from '@mui/material';
+import { Drawer, Divider, List, ListItem, ListItemIcon, ListItemText, useTheme, styled, Button } from '@mui/material';
 import { FC } from 'react';
 import { useHistory } from 'react-router-dom';
-import { FirebaseService } from '../../../services/firebase.service';
 import { useAppDispatch, useAppSelector } from '../../../redux/store';
 import { signOut } from '../../../redux/reducers/user';
 
@@ -25,7 +24,6 @@ const Sidebar: FC<{sidebarOpen: boolean, openSidebar: () => void, closeSidebar: 
   const loggedIn = useAppSelector(state => state.userReducer.loggedIn);
   
   const logout = async () => {
-    await FirebaseService.signOut();
     dispatch(signOut());
     closeSidebar();
   };
@@ -58,7 +56,7 @@ const Sidebar: FC<{sidebarOpen: boolean, openSidebar: () => void, closeSidebar: 
     { title: 'Bewerber',  icon: <FormatListBulletedIcon />, cb: () => handleClick('/'), auth: true },
     { title: 'Synchronisieren', icon: <SyncIcon />, cb: () => handleClick('', handleSynch), auth: true },
     { title: 'Profile', icon: <PersonIcon />, cb: () => handleClick('/profile'), auth: true },
-    { title: 'WG', icon: <GroupsIcon />, cb: () => handleClick('/wg'), auth: true },
+    { title: 'WG', icon: <GroupsIcon />, cb: () => handleClick('/apartment'), auth: true },
     { title: 'Logout', icon: <LogoutIcon />, cb: () => handleClick('', logout), auth: true },
     { title: 'Login', icon: <LoginIcon />, cb: () => handleClick('/signin'), auth: false },
     { title: 'Registrieren', icon: <CreateIcon />, cb: () => handleClick('/signup'), auth: false },

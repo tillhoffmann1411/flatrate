@@ -1,6 +1,6 @@
 import { IUser } from './user';
 
-export interface IFlat {
+export interface IApartment {
   id: string,
   name: string,
   flatmates: IUser[]

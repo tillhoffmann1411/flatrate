@@ -5,7 +5,7 @@ import IApplicant from '../../../interfaces/applicant';
 import { updateApplicant } from '../../../redux/reducers/applicants';
 import { startEditMode, finishEditMode } from '../../../redux/reducers/edit';
 import { useAppDispatch, useAppSelector } from '../../../redux/store';
-import { FirebaseService } from '../../../services/firebase.service';
+import { ApplicantService } from '../../../services/applicant.service';
 import EditDrawer from './navbar-edit-drawer';
 
 import EditIcon from '@mui/icons-material/Edit';
@@ -37,7 +37,7 @@ const EditButton: FC = () => {
   const updateAllApplicants = async (applicants: IApplicant[], status: string) => {
     applicants.forEach(async (applicant) => {
       const newApplicant = {...applicant, status: status as IApplicant['status']};
-      await FirebaseService.updateApplicant(newApplicant);
+      await ApplicantService.updateApplicant(newApplicant);
       dispatch(updateApplicant(newApplicant));
     });
   }

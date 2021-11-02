@@ -1,18 +1,19 @@
 import { TypedUseSelectorHook, useDispatch, useSelector } from 'react-redux'
-import { combineReducers, createStore } from '@reduxjs/toolkit';
+import { applyMiddleware, combineReducers, compose, createStore } from '@reduxjs/toolkit';
 import { applicantsReducer } from './reducers/applicants';
 import { filterReducer } from './reducers/filter';
 import { editReducer } from './reducers/edit';
 import { userReducer } from './reducers/user';
-// import { composeWithDevTools } from '@reduxjs/toolkit/dist/devtoolsExtension';
+import thunk from 'redux-thunk';
 
-// const composedEnhancers = composeWithDevTools();
+const composeEnhancers = (window as any).__REDUX_DEVTOOLS_EXTENSION_COMPOSE__ || compose;
 export const store =  createStore(combineReducers({
   applicantsReducer,
   filterReducer,
   editReducer,
   userReducer
-}));
+}),
+composeEnhancers(applyMiddleware(thunk)));
 
 
 
@@ -24,5 +25,5 @@ export type AppDispatch = typeof store.dispatch
 
 
 // Use throughout your app instead of plain `useDispatch` and `useSelector`
-export const useAppDispatch = () => useDispatch<AppDispatch>()
+export const useAppDispatch = () => useDispatch()
 export const useAppSelector: TypedUseSelectorHook<RootState> = useSelector

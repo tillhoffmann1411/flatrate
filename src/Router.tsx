@@ -1,5 +1,6 @@
 import { FC } from 'react'
 import { Switch, Route, Redirect } from 'react-router-dom'
+import Apartment from './components/apartment/apartment'
 import { Applicant } from './components/applicant/applicant'
 import { ApplicantsList } from './components/applicants-list/applicants-list'
 import SignIn from './components/sign-in/sign-in'
@@ -20,6 +21,7 @@ export const Router: FC = () => {
           return <Redirect to={'/'} />
         }
       }} />
+      <PrivateRoute path="/apartment" component={Apartment} />
       <PrivateRoute path="/" component={ApplicantsList} />
     </Switch>
   )
