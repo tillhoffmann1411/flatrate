@@ -13,6 +13,7 @@ import Main from './components/utils/main/main';
 import { Router } from './Router';
 import { ApplicantService } from './services/applicant.service';
 import { AuthService } from './services/auth.service';
+import { IApartment } from './interfaces/apartment';
 
 const App: FC = () => {
   const dispatch = useAppDispatch();
@@ -28,15 +29,18 @@ const App: FC = () => {
   };
 
   useEffect(() => {
-    const fetchApplicants = async () => {
-      const tempappl = await ApplicantService.getApplicants();
+    const fetchApplicants = async (apartmentId: string) => {
+      const tempappl = await ApplicantService.getFirestoreApplicants(apartmentId);
       dispatch(setApplicants(tempappl));
     };
     const getCurrentUser = () => {
       AuthService.onAuthStateChanged(async (authUser: IAuthUser | undefined) => {
         if (authUser) {
-          dispatch(loadUser({ id: authUser.id }));
-          await fetchApplicants();
+          const disUser = (await dispatch(loadUser({ id: authUser.id }))) as any;
+          if (disUser && disUser.payload && disUser.payload.apartment) {
+            const apartment = disUser.payload.apartment as IApartment;
+            await fetchApplicants(apartment.id);
+          }
         }
       });
     }

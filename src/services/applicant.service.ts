@@ -1,5 +1,8 @@
 import { ref, update, get } from '@firebase/database';
-import {  db } from '../config/firebase.config';
+import { collection, doc, DocumentReference, getDoc, updateDoc } from '@firebase/firestore';
+import { getDocs } from 'firebase/firestore';
+import {  db, firestore } from '../config/firebase.config';
+import { IApartment } from '../interfaces/apartment';
 import IApplicant from '../interfaces/applicant';
 
 
@@ -15,7 +18,7 @@ export class ApplicantService {
     return snapshot.val() as IApplicant;
   }
 
-  static async getApplicants() : Promise<IApplicant[]> {
+  static async getApplicants(apartmentId: string) : Promise<IApplicant[]> {
     const dbRef = ref(db, 'applicants');
       const snapshot = await get(dbRef);
       const applicants: IApplicant[] = [];
@@ -23,6 +26,36 @@ export class ApplicantService {
         applicants.push(applicantSnap.val())
       });
       return applicants;
+  }
+
+  static async getFirestoreApplicants(apartmentId: string): Promise<IApplicant[]> {
+    const querySnapshot = await getDocs(collection(firestore, 'applicants-' + apartmentId));
+    const apartmentRef = querySnapshot.docs[0].data().apartment as DocumentReference;
+    const apartment = (await getDoc(apartmentRef)).data() as IApartment;
+    return querySnapshot.docs.map((doc) => {
+      if (apartment) {
+        return { ...doc.data(), apartment } as IApplicant;
+      } else {
+        return doc.data() as IApplicant;
+      }
+    });
+  }
+  
+  static async getFirestoreApplicant(apartmentId: string, id: string): Promise<IApplicant> {
+    const querySnapshot = doc(firestore, 'applicants-' + apartmentId, id);
+    const applicant = (await getDoc(querySnapshot)).data();
+    const apartment = (await getDoc(applicant?.apartment)).data() as IApartment;
+    if (apartment) {
+      return { ...applicant, apartment } as IApplicant;
+    } else {
+      return applicant as IApplicant;
+    }
+  }
+
+  static async updateFirestoreApplicant(applicant: IApplicant): Promise<void> {
+    const applRef = doc(firestore, 'applicants-' + applicant.apartment?.id, applicant.id);
+    delete applicant.apartment
+    await updateDoc(applRef, {...applicant});
   }
 
   

@@ -37,7 +37,7 @@ const EditButton: FC = () => {
   const updateAllApplicants = async (applicants: IApplicant[], status: string) => {
     applicants.forEach(async (applicant) => {
       const newApplicant = {...applicant, status: status as IApplicant['status']};
-      await ApplicantService.updateApplicant(newApplicant);
+      await ApplicantService.updateFirestoreApplicant(newApplicant);
       dispatch(updateApplicant(newApplicant));
     });
   }

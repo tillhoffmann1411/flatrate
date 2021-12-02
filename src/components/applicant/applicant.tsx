@@ -8,10 +8,12 @@ import { ApplicantFooter } from './applicant-footer';
 import { ApplicantText } from './applicant-text';
 import { ApplicantEdit } from './applicant-edit';
 import { ApplicantService } from '../../services/applicant.service';
+import { IUser } from '../../interfaces/user';
 
 
 export const Applicant = ({id}: {id: string}) => {
   const applicantsState = useAppSelector(state => state.applicantsReducer);
+  const user = useAppSelector(state => state.userReducer.user) as IUser | undefined;
   const dispatch = useAppDispatch();
   const applicant = applicantsState.selectedApplicant;
   const applicants = applicantsState.applicants;
@@ -19,8 +21,10 @@ export const Applicant = ({id}: {id: string}) => {
   
   useEffect(() => {
     const fetch = async () => {
-      const appl = await ApplicantService.getApplicant(id);
-      dispatch(setApplicant(appl));
+      if (user && user.apartment) {
+        const appl = await ApplicantService.getFirestoreApplicant(user.apartment.id, id);
+        dispatch(setApplicant(appl));
+      }
     };
     const cache = () => {
       const appl = applicants.find(a => a.id === id);
@@ -32,7 +36,7 @@ export const Applicant = ({id}: {id: string}) => {
       cache();
     }
     scrollToTop();
-  }, [id, applicants, dispatch]);
+  }, [id, applicants, dispatch, user]);
   
   if (applicant) {
     return <Grid container spacing={2}>

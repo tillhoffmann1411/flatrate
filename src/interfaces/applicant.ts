@@ -1,3 +1,5 @@
+import { IApartment } from './apartment';
+
 export default interface IApplicant {
     name: string,
     text: string,
@@ -5,13 +7,9 @@ export default interface IApplicant {
     when: number,
     imageUrl: string,
     wggId: string | undefined,
+    apartment?: IApartment,
     id: string,
     note: string,
-    ratings: {
-        "till": number,
-        "maike": number,
-        "max": number,
-        "emily": number
-    }
+    ratings: {[x: string]: number}[]
     status?: 'rejected' | 'open' | 'invited' | 'accepted',
 }
