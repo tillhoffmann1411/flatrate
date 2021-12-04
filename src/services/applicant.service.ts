@@ -29,7 +29,11 @@ export class ApplicantService {
   }
 
   static async getFirestoreApplicants(apartmentId: string): Promise<IApplicant[]> {
-    const querySnapshot = await getDocs(collection(firestore, 'applicants-' + apartmentId));
+    let collectionName = 'applicants';
+    if (apartmentId) {
+      collectionName += '-' + apartmentId;
+    }
+    const querySnapshot = await getDocs(collection(firestore, collectionName));
     const apartmentRef = querySnapshot.docs[0].data().apartment as DocumentReference;
     const apartment = (await getDoc(apartmentRef)).data() as IApartment;
     return querySnapshot.docs.map((doc) => {

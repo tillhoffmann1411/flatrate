@@ -13,7 +13,8 @@ import Container from '@mui/material/Container';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import { useHistory } from 'react-router-dom';
 import { useAppDispatch } from '../../redux/store';
-import { signUp } from '../../redux/reducers/user';
+import { signInGuest, signUp } from '../../redux/reducers/user';
+import { DEMO_USER_ID } from '../../env';
 
 function Copyright(props: any) {
   return (
@@ -136,6 +137,28 @@ export default function SignUp() {
             </Grid>
           </Box>
         </Box>
+        { DEMO_USER_ID?
+          <Box
+            sx={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+            }}
+          >
+            <Button
+              type="button"
+              variant="contained"
+              sx={{ mt: 3, mb: 2 }}
+              onClick={ () => {
+                dispatch(signInGuest());
+                history.push('/');
+              }}
+            >
+              Demo
+            </Button>
+          </Box>
+          : undefined
+        }
         <Copyright sx={{ mt: 5 }} />
       </Container>
     </ThemeProvider>

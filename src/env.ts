@@ -8,3 +8,5 @@ export const firebaseEnv = {
   appId: process.env.REACT_APP_FIREBASE_APP_ID,
   measureId: process.env.REACT_APP_FIREBASE_MEASURE_ID
 };
+
+export const DEMO_USER_ID = process.env.REACT_APP_DEMO_USER_ID;

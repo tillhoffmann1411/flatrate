@@ -52,7 +52,6 @@ const App: FC = () => {
   } else {
     return (
       <React.Fragment>
-        
         <Navbar sidebarOpen={open} openSidebar={openSidebar} closeSidebar={closeSidebar} />
         
         <Sidebar sidebarOpen={open} openSidebar={openSidebar} closeSidebar={closeSidebar} />

@@ -1,4 +1,5 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
+import { DEMO_USER_ID } from '../../env';
 import { IUser } from '../../interfaces/user';
 import { AuthService } from '../../services/auth.service';
 import { UserService } from '../../services/user.service';
@@ -34,6 +35,31 @@ export const signIn = createAsyncThunk<
       if (authUser) user = await UserService.getUser(authUser.id);
       if (user) return user;
       else throw new Error();
+    } catch (e) {
+      const msg = 'Error by signin: ' + e;
+      console.log(msg);
+      return thunkApi.rejectWithValue({msg});
+    }
+  }
+);
+
+
+export const signInGuest = createAsyncThunk<
+  IUser | undefined,
+  undefined,
+  { rejectValue: UserError }
+  >(
+  'user/signInGuest',
+  async (cred, thunkApi) => {
+    try {
+      if (DEMO_USER_ID) {
+        await AuthService.signInAsGuest();
+        const user = await UserService.getUser(DEMO_USER_ID);
+        if (user) return user;
+        else throw new Error();
+      } else {
+        throw new Error('No demo user id provided!');
+      }
     } catch (e) {
       const msg = 'Error by signin: ' + e;
       console.log(msg);
@@ -150,6 +176,21 @@ const userSlice = createSlice({
       state.user = payload;
     });
     builder.addCase(signIn.rejected, (state: IUserState) => {
+      state.loading = false;
+      state.loggedIn = false;
+      state.user = undefined;
+    });
+
+    // SignInGuest
+    builder.addCase(signInGuest.pending, (state: IUserState) => {
+      state.loading = true;
+    });
+    builder.addCase(signInGuest.fulfilled, (state: IUserState, { payload }) => {
+      state.loading = false;
+      state.loggedIn = !!payload;
+      state.user = payload;
+    });
+    builder.addCase(signInGuest.rejected, (state: IUserState) => {
       state.loading = false;
       state.loggedIn = false;
       state.user = undefined;

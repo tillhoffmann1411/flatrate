@@ -6,11 +6,14 @@ import { FC } from 'react';
 import EditButton from './navbar-edit-button';
 
 import MenuIcon from '@mui/icons-material/Menu';
+import { useAppSelector } from '../../../redux/store';
+import NavbarBackButton from './navbar-back-button';
 // import NavbarBackButton from './navbar-back-button';
 
 const drawerWidth = 300;
 
 const Navbar: FC<{sidebarOpen: boolean, openSidebar: () => void, closeSidebar: () => void}> = ({sidebarOpen, openSidebar, closeSidebar}) => {
+  const loggedIn = useAppSelector(state => state.userReducer.loggedIn);
   const history = useHistory();
   return (
     <header>
@@ -27,13 +30,13 @@ const Navbar: FC<{sidebarOpen: boolean, openSidebar: () => void, closeSidebar: (
             <MenuIcon />
           </IconButton>
 
-          {/* <NavbarBackButton sidebarOpen={sidebarOpen} /> */}
+          <NavbarBackButton sidebarOpen={sidebarOpen} />
           
           <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1 }} onClick={() => history.push('/')}>
             flatrate
           </Typography>
 
-          {sidebarOpen? undefined :
+          {!loggedIn && sidebarOpen? undefined :
             <EditButton />
           }
         </Toolbar>

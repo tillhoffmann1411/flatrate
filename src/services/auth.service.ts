@@ -1,6 +1,7 @@
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, updateProfile, User } from '@firebase/auth';
-import { deleteUser, EmailAuthProvider, reauthenticateWithCredential, updatePassword } from 'firebase/auth';
+import { deleteUser, EmailAuthProvider, getAuth, reauthenticateWithCredential, signInAnonymously, updatePassword } from 'firebase/auth';
 import { auth } from '../config/firebase.config';
+import { DEMO_USER_ID } from '../env';
 import { IAuthUser } from '../interfaces/user';
 
 export class AuthService {
@@ -14,6 +15,13 @@ export class AuthService {
           email: fireUser.email
         };
         cb(user);
+      } else if (fireUser && DEMO_USER_ID) {
+        const guestUser = {
+          id: DEMO_USER_ID,
+          name: '',
+          email: ''
+        }
+        cb(guestUser);
       } else {
         cb(undefined);
       }
@@ -76,4 +84,17 @@ export class AuthService {
     return false;
   }
 
+  static async signInAsGuest() {
+    const auth = getAuth();
+    const cred = await signInAnonymously(auth).catch((error) => {
+        const errorCode = error.code;
+        const errorMessage = error.message;
+        console.error('Error by sign in as a guest! Code:', errorCode, ' - msg:', errorMessage);
+    });
+    if (cred) {
+      return cred.user;
+    } else {
+      return undefined;
+    }
+  }
 }

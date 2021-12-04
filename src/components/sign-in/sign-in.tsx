@@ -13,7 +13,8 @@ import { createTheme, ThemeProvider } from '@mui/material/styles';
 import { Route, useHistory } from 'react-router-dom';
 import { FC, useEffect } from 'react';
 import { useAppDispatch, useAppSelector } from '../../redux/store';
-import { signIn } from '../../redux/reducers/user';
+import { signIn, signInGuest } from '../../redux/reducers/user';
+import { DEMO_USER_ID } from '../../env';
 
 function Copyright(props: any) {
   return (
@@ -126,6 +127,28 @@ const SignIn: FC<React.ComponentProps<typeof Route>> = (props) => {
             </Grid>
           </Box>
         </Box>
+        { DEMO_USER_ID?
+          <Box
+            sx={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+            }}
+          >
+            <Button
+              type="button"
+              variant="contained"
+              sx={{ mt: 3, mb: 2 }}
+              onClick={ () => {
+                dispatch(signInGuest());
+                history.push('/');
+              }}
+            >
+              Demo
+            </Button>
+          </Box>
+          : undefined
+        }
         <Copyright sx={{ mt: 8, mb: 4 }} />
       </Container>
     </ThemeProvider>
