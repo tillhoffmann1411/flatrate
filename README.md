@@ -4,7 +4,7 @@ With this tool, residents of a shared flat can log in and rate flatmates applica
 
 You can find a Demo here: https://flatrate.web.app
 
-## [Demoe](https://flatrate.web.app)
+## [Demo](https://flatrate.web.app)
 
 
 ## How do I get the applicants from WG Gesucht in flatrate?
