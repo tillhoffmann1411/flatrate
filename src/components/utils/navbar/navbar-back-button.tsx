@@ -1,15 +1,13 @@
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import { IconButton } from '@mui/material';
 import { FC, useState } from 'react';
-import { useHistory } from 'react-router';
+import { useNavigate } from 'react-router-dom';
 
 
 const NavbarBackButton: FC<{sidebarOpen: boolean}> = ({sidebarOpen}) => {
   const [path, setpath] = useState<string>('');
-  const history = useHistory();
+  const navigate = useNavigate();
   
-  history.listen((location, action) => setpath(location.pathname));
-
   if (!sidebarOpen) {
     return (
       <IconButton
@@ -18,7 +16,7 @@ const NavbarBackButton: FC<{sidebarOpen: boolean}> = ({sidebarOpen}) => {
           color="inherit"
           aria-label="menu"
           sx={{ mr: 2 }}
-          onClick={path !== '/' && path !== ''? () => history.goBack() : undefined}
+          onClick={path !== '/' && path !== ''? () => navigate(-1) : undefined}
         >
           {path !== '/' && path !== ''?
           <ArrowBackIcon />

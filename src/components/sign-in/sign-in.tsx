@@ -3,18 +3,20 @@ import Button from '@mui/material/Button';
 import CssBaseline from '@mui/material/CssBaseline';
 import TextField from '@mui/material/TextField';
 import Link from '@mui/material/Link';
-import { Link as RouterLink } from 'react-router-dom';
+import { Link as RouterLink, useLocation, useNavigate } from 'react-router-dom';
 import Grid from '@mui/material/Grid';
 import Box from '@mui/material/Box';
 import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 import Typography from '@mui/material/Typography';
 import Container from '@mui/material/Container';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
-import { Route, useHistory } from 'react-router-dom';
-import { FC, useEffect } from 'react';
-import { useAppDispatch, useAppSelector } from '../../redux/store';
-import { signIn, signInGuest } from '../../redux/reducers/user';
+import { Route } from 'react-router-dom';
+import { FC, useContext, useEffect, useState } from 'react';
 import { DEMO_USER_ID } from '../../env';
+import UserContext from '../../context/user-context';
+import { AuthService } from '../../services/auth.service';
+import { UserService } from '../../services/user.service';
+import { LoadingButton } from '@mui/lab';
 
 function Copyright(props: any) {
   return (
@@ -32,35 +34,61 @@ function Copyright(props: any) {
 const theme = createTheme();
 
 const SignIn: FC<React.ComponentProps<typeof Route>> = (props) => {
-  const history = useHistory();
-  const dispatch = useAppDispatch();
-  const loggedIn = useAppSelector(state => state.userReducer.loggedIn);
-  const fromPath = props.location!['state']? (props.location!.state as any).from.pathname : '/';
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { setUser, user } = useContext(UserContext);
+  const [error, setError] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const fromPath = location.pathname;
 
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    setIsLoading(true);
     event.preventDefault();
     const data = new FormData(event.currentTarget);
-    const user = {
+    const cred = {
       email: data.get('email') as string,
       password: data.get('password') as string
     };
-    if (user.email && user.password) {
-      dispatch(signIn({ email: user.email, password: user.password}));
-      if (loggedIn) {
-        history.push(fromPath);
+    if (cred.email && cred.password) {
+      const authUser = await AuthService.signIn(cred.email, cred.password);
+      if (authUser) {
+        const user = await UserService.getUser(authUser.id)
+        setIsLoading(false);
+        setUser(user);
+        let route = fromPath.includes('signin') ? '/' : fromPath;
+        route = user?.apartmentId ? route : '/apartment';
+        navigate(route);
+      } else {
+        setIsLoading(false);
+        setError('Your email or password is incorrect');
       }
-
     } else {
-      console.error('Error by sign up, check the form!');
+      setIsLoading(false);
+      setError('Please input your email and password');
+    }
+  };
+
+  const signInGuest = async () => {
+    if (DEMO_USER_ID) {
+      await AuthService.signInAsGuest();
+      const user = await UserService.getUser(DEMO_USER_ID);
+      if (user) {
+        setUser(user);
+        navigate('/');
+      } else {
+        setError('There was an error by opening the demo. Please try again later');
+      }
+    } else {
+      setError('No demo user id provided!');
     }
   };
 
   useEffect(() => {
-    if (loggedIn) {
-      history.push(fromPath);
+    if (user) {
+      navigate(fromPath);
     }
-  }, [loggedIn, history, fromPath]);
+  }, [user, fromPath]);
   
   return (
     <ThemeProvider theme={theme}>
@@ -101,18 +129,20 @@ const SignIn: FC<React.ComponentProps<typeof Route>> = (props) => {
               id="password"
               autoComplete="current-password"
             />
-            {/* <FormControlLabel
-              control={<Checkbox value="remember" color="primary" />}
-              label="Remember me"
-            /> */}
-            <Button
+            { error !== '' && (
+              <Typography color="error">
+                { error }
+              </Typography>
+            )}
+            <LoadingButton
               type="submit"
               fullWidth
               variant="contained"
+              loading={isLoading}
               sx={{ mt: 3, mb: 2 }}
             >
               Sign In
-            </Button>
+            </LoadingButton>
             <Grid container>
               <Grid item xs>
                 <Link component={RouterLink} to="#" variant="body2">
@@ -139,10 +169,7 @@ const SignIn: FC<React.ComponentProps<typeof Route>> = (props) => {
               type="button"
               variant="contained"
               sx={{ mt: 3, mb: 2 }}
-              onClick={ () => {
-                dispatch(signInGuest());
-                history.push('/');
-              }}
+              onClick={signInGuest}
             >
               Demo
             </Button>

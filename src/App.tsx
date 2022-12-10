@@ -1,10 +1,7 @@
 import './styles/App.css';
-import { FC, useEffect } from 'react';
-import React from 'react';
-import { setApplicants } from './redux/reducers/applicants';
-import { useAppDispatch, useAppSelector } from './redux/store';
+import { FC, useEffect, useState } from 'react';
+import React, { useContext } from 'react';
 
-import { loadUser } from './redux/reducers/user';
 import { IAuthUser } from './interfaces/user';
 import Navbar from './components/utils/navbar/navbar';
 import LoadingSpinner from './components/utils/loading-spinner/loading-spinner';
@@ -13,12 +10,18 @@ import Main from './components/utils/main/main';
 import { Router } from './Router';
 import { ApplicantService } from './services/applicant.service';
 import { AuthService } from './services/auth.service';
-import { IApartment } from './interfaces/apartment';
+import { UserService } from './services/user.service';
+import UserContext from './context/user-context';
+import ApartmentContext from './context/apartment-context';
+import { ApartmentService } from './services/apartment.service';
+import ApplicantsContext from './context/applicants-context';
 
 const App: FC = () => {
-  const dispatch = useAppDispatch();
-  const loading = useAppSelector(state => state.userReducer.loading);
-  const [open, setOpen] = React.useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [open, setOpen] = useState(false);
+  const { setUser } = useContext(UserContext);
+  const { setApartment } = useContext(ApartmentContext);
+  const { setApplicants } = useContext(ApplicantsContext);
 
   const openSidebar = () => {
     setOpen(true);
@@ -30,24 +33,31 @@ const App: FC = () => {
 
   useEffect(() => {
     const fetchApplicants = async (apartmentId: string) => {
-      const tempappl = await ApplicantService.getFirestoreApplicants(apartmentId);
-      dispatch(setApplicants(tempappl));
+      const tempappl = (await ApplicantService.getApplicants(apartmentId)).filter(a => a);
+      setApplicants(tempappl);
     };
+
     const getCurrentUser = () => {
       AuthService.onAuthStateChanged(async (authUser: IAuthUser | undefined) => {
+        setIsLoading(true);
         if (authUser) {
-          const disUser = (await dispatch(loadUser({ id: authUser.id }))) as any;
-          if (disUser && disUser.payload && disUser.payload.apartment) {
-            const apartment = disUser.payload.apartment as IApartment;
-            await fetchApplicants(apartment.id);
+          const loadedUser = await UserService.getUser(authUser.id);
+          setUser(loadedUser);
+          if (loadedUser && loadedUser.apartmentId) {
+            const loadedApartment = await ApartmentService.get(loadedUser.apartmentId);
+            setApartment(loadedApartment)
+            await fetchApplicants(loadedUser.apartmentId);
           }
         }
+        setIsLoading(false);
       });
     }
-    getCurrentUser();
-  }, [dispatch]);
 
-  if (loading) {
+
+    getCurrentUser();
+  }, [setApplicants, setIsLoading, setUser, setApartment]);
+
+  if (isLoading) {
     return <LoadingSpinner />
   } else {
     return (

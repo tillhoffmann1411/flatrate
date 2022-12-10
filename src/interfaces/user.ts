@@ -1,12 +1,12 @@
-import { IApartment } from './apartment';
+import { Timestamp } from 'firebase/firestore';
 
 export interface IUser {
   id: string,
   firstName: string,
   lastName: string,
   email: string,
-  apartment: IApartment | undefined,
-  createdAt: Date
+  createdAt: Timestamp,
+  apartmentId?: string,
 }
 
 export interface IAuthUser {

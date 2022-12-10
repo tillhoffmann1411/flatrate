@@ -1,26 +1,22 @@
 import { Box, Container, List } from '@mui/material';
 import IApplicant from '../../interfaces/applicant';
-import { useState, useEffect, FC } from 'react';
-import { useAppDispatch, useAppSelector } from '../../redux/store';
-import { setApplicant } from '../../redux/reducers/applicants';
+import { useState, useEffect, FC, useContext } from 'react';
 import { FilterOptions } from './applicants-list-filter';
 import { ApplicantListItem } from './applicants-list-item';
 import { applySearch, applySort, filterSex } from './applicants-list.service';
+import ApplicantsContext from '../../context/applicants-context';
 
 export const ApplicantsList: FC = () => {
-  const dispatch = useAppDispatch();
-  const allApplicants = useAppSelector(state => state.applicantsReducer.applicants);
-  const filter = useAppSelector(state => state.filterReducer);
-  const [applicants, setLocalApplicants] = useState<IApplicant[]>([]);
-  window.scrollTo(0, filter.position);
+  const { applicants } = useContext(ApplicantsContext);
+  window.scrollTo(0, 0);
   
   useEffect(() => {
-    const filteredApplicants = filterSex(allApplicants, !filter.male, !filter.female);
-    const rankedApplicants = applySort(filteredApplicants, filter.ranking);
-    const searchedApplicants = applySearch(rankedApplicants, filter.searchString);
-    setLocalApplicants(searchedApplicants);
-    dispatch(setApplicant(undefined));
-  }, [allApplicants, filter, dispatch]);
+    // const filteredApplicants = filterSex(allApplicants, !filter.male, !filter.female);
+    // const rankedApplicants = applySort(filteredApplicants, filter.ranking);
+    // const searchedApplicants = applySearch(rankedApplicants, filter.searchString);
+    //setLocalApplicants(searchedApplicants);
+    // dispatch(setApplicant(undefined));
+  }, [applicants]);
 
   return <Container sx={{ p: 0 }}>
     <FilterOptions/>

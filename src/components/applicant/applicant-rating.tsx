@@ -1,12 +1,11 @@
 import { Box, FormControl, InputLabel, Select } from '@mui/material';
-import { FC } from 'react';
+import { FC, useContext } from 'react';
+import ApplicantsContext from '../../context/applicants-context';
 import IApplicant from '../../interfaces/applicant';
-import { updateApplicant } from '../../redux/reducers/applicants';
-import { useAppDispatch } from '../../redux/store';
 import { ApplicantService } from '../../services/applicant.service';
 
 export const ApplicantRatings: FC<{applicant: IApplicant}> = ({ applicant }) => {
-  const dispatch = useAppDispatch();
+  const { updateApplicant } = useContext(ApplicantsContext);
   const sortedRatings = [...applicant.ratings].sort((a, b) => {
     if (Object.keys(a)[0] > Object.keys(b)[0]) {
       return 1;
@@ -39,7 +38,7 @@ export const ApplicantRatings: FC<{applicant: IApplicant}> = ({ applicant }) => 
                 }
                 ApplicantService.updateFirestoreApplicant(newApplicant);
   
-                dispatch(updateApplicant(newApplicant));
+                updateApplicant(newApplicant);
               }}
               label="Rating"
               inputProps={{

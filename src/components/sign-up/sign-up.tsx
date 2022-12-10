@@ -4,17 +4,19 @@ import Button from '@mui/material/Button';
 import CssBaseline from '@mui/material/CssBaseline';
 import TextField from '@mui/material/TextField';
 import Link from '@mui/material/Link';
-import { Link as RouterLink } from 'react-router-dom';
+import { Link as RouterLink, useNavigate } from 'react-router-dom';
 import Grid from '@mui/material/Grid';
 import Box from '@mui/material/Box';
 import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 import Typography from '@mui/material/Typography';
 import Container from '@mui/material/Container';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
-import { useHistory } from 'react-router-dom';
-import { useAppDispatch } from '../../redux/store';
-import { signInGuest, signUp } from '../../redux/reducers/user';
 import { DEMO_USER_ID } from '../../env';
+import UserContext from '../../context/user-context';
+import { useState } from 'react';
+import { AuthService } from '../../services/auth.service';
+import { UserService } from '../../services/user.service';
+import { LoadingButton } from '@mui/lab';
 
 function Copyright(props: any) {
   return (
@@ -32,24 +34,51 @@ function Copyright(props: any) {
 const theme = createTheme();
 
 export default function SignUp() {
-  const history = useHistory();
-  const dispatch = useAppDispatch();
+  const navigate = useNavigate();
+  const { setUser } = React.useContext(UserContext);
+  const [error, setError] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const data = new FormData(event.currentTarget);
-    const newUser = {
+    const cred = {
       firstName: data.get('firstName') as string,
       lastName: data.get('lastName') as string,
       email: data.get('email') as string,
       password: data.get('password') as string
     };
-    if (newUser.firstName && newUser.lastName && newUser.email && newUser.password) {
-      dispatch(signUp({ firstName: newUser.firstName, lastName: newUser.lastName, email: newUser.email, password: newUser.password }));
-      history.push('/');
+    if (cred.firstName && cred.lastName && cred.email && cred.password) {
+      const authUser = await AuthService.signUp(cred.firstName, cred.lastName, cred.email, cred.password);
+      if (authUser) {
+        const newUser = await UserService.create({id: authUser.id, firstName: cred.firstName, lastName: cred.lastName, email: cred.email});
+        setIsLoading(false);
+        setUser(newUser);
+        navigate('/apartment');
+      } else {
+        setIsLoading(false);
+        setError('Please fillout every field');
+      }
     } else {
-      console.error('Error by sign up, check the form!');
+      setIsLoading(false);
+      setError('Please fillout every field');
     }
   };
+
+  const signInGuest = async () => {
+    if (DEMO_USER_ID) {
+      await AuthService.signInAsGuest();
+      const user = await UserService.getUser(DEMO_USER_ID);
+      if (user) {
+        setUser(user);
+        navigate('/');
+      } else {
+        setError('There was an error by opening the demo. Please try again later');
+      }
+    } else {
+      setError('No demo user id provided!');
+    }
+  }
 
   return (
     <ThemeProvider theme={theme}>
@@ -113,21 +142,21 @@ export default function SignUp() {
                   autoComplete="new-password"
                 />
               </Grid>
-              {/* <Grid item xs={12}>
-                <FormControlLabel
-                  control={<Checkbox value="allowExtraEmails" color="primary" />}
-                  label="I want to receive inspiration, marketing promotions and updates via email."
-                />
-              </Grid> */}
+              { error !== '' && (
+              <Typography color="error">
+                { error }
+              </Typography>
+            )}
             </Grid>
-            <Button
+            <LoadingButton
               type="submit"
               fullWidth
+              loading={isLoading}
               variant="contained"
               sx={{ mt: 3, mb: 2 }}
             >
               Sign Up
-            </Button>
+            </LoadingButton>
             <Grid container justifyContent="flex-end">
               <Grid item>
                 <Link component={RouterLink} to="/signin" variant="body2">
@@ -149,10 +178,7 @@ export default function SignUp() {
               type="button"
               variant="contained"
               sx={{ mt: 3, mb: 2 }}
-              onClick={ () => {
-                dispatch(signInGuest());
-                history.push('/');
-              }}
+              onClick={signInGuest}
             >
               Demo
             </Button>

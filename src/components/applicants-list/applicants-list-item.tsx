@@ -1,17 +1,15 @@
 import { Badge, ListItem, ListItemIcon, Checkbox, ListItemAvatar, Avatar, ListItemText, Chip } from '@mui/material';
 import { red, blue, orange, green } from '@mui/material/colors';
 import { Box } from '@mui/system';
-import { FC, useState } from 'react';
-import { useHistory } from 'react-router-dom';
+import { FC, useContext, useState } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import IApplicant from '../../interfaces/applicant';
-import { addApplicant, removeApplicant } from '../../redux/reducers/edit';
-import { setFilter } from '../../redux/reducers/filter';
-import { useAppDispatch, useAppSelector } from '../../redux/store';
 
 import CancelIcon from '@mui/icons-material/Cancel';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import InsertInvitationIcon from '@mui/icons-material/InsertInvitation';
 import { calcRating } from './applicants-list.service';
+import ApplicantsContext from '../../context/applicants-context';
 
 
 export const ApplicantListItem: FC<{applicant: IApplicant}> = ({ applicant }) => {
@@ -21,35 +19,25 @@ export const ApplicantListItem: FC<{applicant: IApplicant}> = ({ applicant }) =>
     { title: 'invited', color: orange[700], icon: <InsertInvitationIcon />},
     { title: 'accpeted', color: green[700], icon: <CheckCircleIcon />},
   ]
-  const history = useHistory();
-  const dispatch = useAppDispatch();
-  const applicantStatus = states.find(s => s.title === applicant.status);
-  const editMode = useAppSelector(state => state.editReducer.editMode);
+  const navigate = useNavigate();
+  const [_, setSearchParams] = useSearchParams();
+  const { editMode, applicants} = useContext(ApplicantsContext);
   const [checked, setChecked] = useState<boolean>(false);
 
   const handleClick = () => {
-    dispatch(setFilter({position: window.scrollY}));
-    history.push('/applicant/' + applicant.id);
+    navigate({ pathname: '/applicant', search: '?id=' + applicant.id});
   };
 
-  const getBadge = () => {
-    if (applicantStatus) {
-      return applicantStatus.icon
-    } else {
-      return <Badge color="secondary" badgeContent=" " />
-    }
-  }
+  // const getBadge = () => {
+  //   if (applicantStatus) {
+  //     return applicantStatus.icon
+  //   } else {
+  //     return <Badge color="secondary" badgeContent=" " />
+  //   }
+  // }
 
-  const handleCheck = () => {
-    setChecked(!checked);
-    if (!checked) {
-      dispatch(addApplicant(applicant));
-    } else {
-      dispatch(removeApplicant(applicant));
-    }
-  }
   return (
-  <ListItem key={applicant.id} onClick={editMode? handleCheck : handleClick}>
+  <ListItem key={applicant.id} onClick={ handleClick}>
     { editMode?
       <ListItemIcon>
         <Checkbox
@@ -61,7 +49,7 @@ export const ApplicantListItem: FC<{applicant: IApplicant}> = ({ applicant }) =>
       </ListItemIcon>
     : undefined}
     <ListItemAvatar>
-      { applicantStatus ?
+      {/* { applicantStatus ?
         <Badge
           overlap="circular"
           sx={{ color: applicantStatus.color, bgcolor: 'white' }}
@@ -72,7 +60,7 @@ export const ApplicantListItem: FC<{applicant: IApplicant}> = ({ applicant }) =>
       </Badge>
       :
       <Avatar alt={applicant.name} src={applicant.imageUrl} />
-    }
+    } */}
     </ListItemAvatar>
     <ListItemText primary={applicant.name}/>
     <GenderChip gender={applicant.gender} />

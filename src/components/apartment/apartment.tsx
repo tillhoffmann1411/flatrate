@@ -1,97 +1,59 @@
 import Button from '@mui/material/Button';
-import CssBaseline from '@mui/material/CssBaseline';
 import TextField from '@mui/material/TextField';
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
 import Container from '@mui/material/Container';
+import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import { Route } from 'react-router-dom';
-import { FC, useEffect, useState } from 'react';
-import { createApartment } from '../../redux/reducers/user';
-import { useAppDispatch, useAppSelector } from '../../redux/store';
+import { FC, useContext, useEffect, useState } from 'react';
 import { IUser } from '../../interfaces/user';
-import { UserService } from '../../services/user.service';
+import { ApartmentService } from '../../services/apartment.service';
 import { List, ListItem, ListItemAvatar, Avatar, ListItemText, Divider } from '@mui/material';
-
-import SendIcon from '@mui/icons-material/Send';
+import ApartmentJoin from './apartment-join';
+import ApartmentCreate from './apartment-create';
+import ProfileCard from './profle-card';
+import UserContext from '../../context/user-context';
+import ApartmentContext from '../../context/apartment-context';
+import { LoadingButton } from '@mui/lab';
 
 
 const theme = createTheme();
 
 const Apartment: FC<React.ComponentProps<typeof Route>> = (props) => {
-  const dispatch = useAppDispatch();
-  const user = useAppSelector(state => state.userReducer.user as IUser | undefined);
   const [flatmates, setFlatmates] = useState<IUser[]>([]);
-
-  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    const data = new FormData(event.currentTarget);
-    const name = data.get('wg-name') as string;
-    if (name) {
-      dispatch(createApartment({ name }));
-    } else {
-      console.error('Error by creating new WG, check the form!');
-    }
-  };
-
-  const handleInvitation = async (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    const data = new FormData(event.currentTarget);
-    const email = data.get('email') as string;
-    if (email) {
-      console.log('Invite', email, 'to WG');
-    } else {
-      console.error('Error by creating new WG, check the form!');
-    }
-  };
+  const { user, setUser } = useContext(UserContext);
+  const { apartment, setApartment } = useContext(ApartmentContext);
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
-    const getAllFlatmates = async () => {
-      if (user && user.apartment) {
-        const mates = await UserService.getAllUserFromApartment(user.apartment.id);
-        if (mates) setFlatmates(mates);
+    if (apartment) {
+      setFlatmates(apartment.flatmates);
+    }
+  }, [setFlatmates, apartment]);
+
+  const leaveApartment = async () => {
+    if (user && apartment) {
+      setIsLoading(true);
+      const newUser = await ApartmentService.leave(apartment.identifier, user.id);
+      if (newUser) {
+        setIsLoading(false);
+        setUser(newUser);
+        setApartment(undefined);
       }
     }
-    getAllFlatmates();
-  }, [setFlatmates, user]);
+  }
 
   return (
     <ThemeProvider theme={theme}>
-      { !user?.apartment? 
-        <Container maxWidth="xs">
-          <CssBaseline />
-          <Box
-            sx={{
-              marginTop: 2,
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-            }}
-          >
-            <Typography component="h1" variant="h5">
-              WG erstellen
-            </Typography>
-            <Box component="form" onSubmit={handleSubmit} noValidate sx={{ mt: 1 }}>
-              <TextField
-                margin="normal"
-                required
-                fullWidth
-                id="wg-name"
-                label="WG Name"
-                name="wg-name"
-                type="text"
-              />
-              <Button
-                type="submit"
-                fullWidth
-                variant="contained"
-                sx={{ mt: 3, mb: 2 }}
-              >
-                Erstellen
-              </Button>
-            </Box>
-          </Box>
-        </Container>
+      <ProfileCard />
+      <Divider sx={{ my: 3 }} />
+      {user && !apartment ?
+        <Box>
+          <ApartmentJoin />
+          <Divider sx={{ my: 3 }} />
+          <ApartmentCreate />
+        </Box>
         :
         <Container maxWidth="xs">
           <Box
@@ -104,17 +66,17 @@ const Apartment: FC<React.ComponentProps<typeof Route>> = (props) => {
           >
             <Box sx={{ p: 2, border: '1px solid grey', borderRadius: 2, width: '100%' }}>
               <Typography component="h1" variant="h5">
-                WG { user?.apartment.name }
+                WG {apartment?.name}
               </Typography>
 
-              <List sx={{ width: '100%', maxWidth: 420 }}>
+              <List sx={{ width: '100%' }}>
                 {
                   flatmates.map(mate => {
                     const name = `${mate.firstName} ${mate.lastName}`;
                     return (
                       <ListItem key={mate.id}>
                         <ListItemAvatar>
-                          <Avatar alt={name} src="" children={`${name.split(' ')[0][0]}${name.split(' ')[1][0]}`} />
+                          <Avatar alt={name} src="" children={`${mate.firstName[0]}${mate.lastName[0]}`} />
                         </ListItemAvatar>
                         <ListItemText primary={name} secondary={mate.email} />
                       </ListItem>
@@ -127,54 +89,57 @@ const Apartment: FC<React.ComponentProps<typeof Route>> = (props) => {
             <Divider />
 
             <Box
-                sx={{
-                  marginTop: 2,
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  p: 2,
-                  border: '1px solid grey',
-                  borderRadius: 2,
-                  width: '100%'
-                }}
-              >
-                <Typography component="h2" variant="h5">
-                  Jemanden zu WG einladen
-                </Typography>
-                <Box component="form" onSubmit={handleInvitation} sx={{ mt: 1 }}>
-                  <TextField
-                    margin="normal"
-                    required
-                    fullWidth
-                    id="email"
-                    label="Email deines Mitbwohners"
-                    name="email"
-                    type="email"
-                  />
-                  <Button
-                    type="submit"
-                    fullWidth
-                    variant="contained"
-                    sx={{ mt: 3, mb: 2 }}
-                    endIcon={<SendIcon />}
-                  >
-                    Einladen
-                  </Button>
-                </Box>
+              sx={{
+                marginTop: 2,
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                p: 2,
+                border: '1px solid grey',
+                borderRadius: 2,
+                width: '100%'
+              }}
+            >
+              <Typography component="h2" variant="h5">
+                Copy invitation link
+              </Typography>
+              <Box sx={{ mt: 1 }}>
+                <Button
+                  type="submit"
+                  fullWidth
+                  variant="contained"
+                  sx={{ mt: 3, mb: 2 }}
+                  endIcon={<ContentCopyIcon />}
+                  onClick={() => navigator.clipboard.writeText(apartment ? apartment.identifier : '')}
+                >
+                  Copy
+                </Button>
+                <TextField
+                  margin="normal"
+                  disabled
+                  fullWidth
+                  value={apartment?.identifier}
+                  id="wg-invitation"
+                  label="Invitation link"
+                  name="wg-invitation"
+                  type="url"
+                />
               </Box>
+            </Box>
 
-              <Divider />
+            <Divider />
 
-              <Button
-                type="button"
-                onClick={() => console.log('Austreten!')}
-                fullWidth
-                color="error"
-                variant="contained"
-                sx={{ mt: 6, mb: 2 }}
-              >
-                Aus WG austreten
-              </Button>
+
+            <LoadingButton
+              type="button"
+              onClick={leaveApartment}
+              sx={{ mt: 3, mb: 2, width: '100%' }}
+              variant="contained"
+              loading={isLoading}
+              color="error"
+            >
+              Leave Flat
+            </LoadingButton>
           </Box>
         </Container>
       }

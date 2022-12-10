@@ -1,20 +1,18 @@
 import { Toolbar, IconButton, Typography, CssBaseline, styled } from '@mui/material';
 import MuiAppBar, { AppBarProps as MuiAppBarProps } from '@mui/material/AppBar';
-import { useHistory } from 'react-router-dom';
-import { FC } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { FC, useContext } from 'react';
 
 import EditButton from './navbar-edit-button';
 
 import MenuIcon from '@mui/icons-material/Menu';
-import { useAppSelector } from '../../../redux/store';
-import NavbarBackButton from './navbar-back-button';
-// import NavbarBackButton from './navbar-back-button';
+import UserContext from '../../../context/user-context';
 
 const drawerWidth = 300;
 
 const Navbar: FC<{sidebarOpen: boolean, openSidebar: () => void, closeSidebar: () => void}> = ({sidebarOpen, openSidebar, closeSidebar}) => {
-  const loggedIn = useAppSelector(state => state.userReducer.loggedIn);
-  const history = useHistory();
+  const { user } = useContext(UserContext);
+  const navigate = useNavigate();
   return (
     <header>
       <CssBaseline />
@@ -30,13 +28,12 @@ const Navbar: FC<{sidebarOpen: boolean, openSidebar: () => void, closeSidebar: (
             <MenuIcon />
           </IconButton>
 
-          <NavbarBackButton sidebarOpen={sidebarOpen} />
           
-          <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1 }} onClick={() => history.push('/')}>
+          <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1 }} onClick={() => navigate('/')}>
             flatrate
           </Typography>
 
-          {!loggedIn && sidebarOpen? undefined :
+          {!user && sidebarOpen? undefined :
             <EditButton />
           }
         </Toolbar>

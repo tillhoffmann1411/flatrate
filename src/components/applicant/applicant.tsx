@@ -1,42 +1,45 @@
 import { Grid, Box, Stack } from '@mui/material';
-import { useEffect } from 'react';
-import { useAppDispatch, useAppSelector } from '../../redux/store';
-import { setApplicant } from '../../redux/reducers/applicants';
+import { FC, useContext, useEffect, useState } from 'react';
 import { ApplicantRatings } from './applicant-rating';
 import { scrollToTop } from './applicant.service';
 import { ApplicantFooter } from './applicant-footer';
 import { ApplicantText } from './applicant-text';
 import { ApplicantEdit } from './applicant-edit';
 import { ApplicantService } from '../../services/applicant.service';
-import { IUser } from '../../interfaces/user';
+import UserContext from '../../context/user-context';
+import { useSearchParams } from 'react-router-dom';
+import ApplicantsContext from '../../context/applicants-context';
+import IApplicant from '../../interfaces/applicant';
 
 
-export const Applicant = ({id}: {id: string}) => {
-  const applicantsState = useAppSelector(state => state.applicantsReducer);
-  const user = useAppSelector(state => state.userReducer.user) as IUser | undefined;
-  const dispatch = useAppDispatch();
-  const applicant = applicantsState.selectedApplicant;
-  const applicants = applicantsState.applicants;
+export const Applicant: FC = () => {
+  const [searchParams] = useSearchParams();
+  const { user } = useContext(UserContext);
+  const [applicant, setApplicant] = useState<undefined | IApplicant>(undefined);
+  const {applicants} = useContext(ApplicantsContext);
   
   
   useEffect(() => {
-    const fetch = async () => {
-      if (user && user.apartment) {
-        const appl = await ApplicantService.getFirestoreApplicant(user.apartment.id, id);
-        dispatch(setApplicant(appl));
+    const fetch = async (applicantId: string) => {
+      if (user && user.apartmentId) {
+        const appl = await ApplicantService.getApplicant(user.apartmentId, applicantId);
+        setApplicant(appl);
       }
     };
-    const cache = () => {
-      const appl = applicants.find(a => a.id === id);
-      if (appl) dispatch(setApplicant(appl));
+    const cache = (applicantId: string) => {
+      const appl = applicants.find(a => a.id === applicantId);
+      console.log('cache', appl);
+      if (appl) {setApplicant(appl);} else {fetch(applicantId);}
     }
+    
+    const applicantId = searchParams.get('id') || '';
     if (applicants.length === 0) {
-      fetch();
+      fetch(applicantId);
     } else {
-      cache();
+      cache(applicantId);
     }
     scrollToTop();
-  }, [id, applicants, dispatch, user]);
+  }, [searchParams, applicants, setApplicant, user]);
   
   if (applicant) {
     return <Grid container spacing={2}>
